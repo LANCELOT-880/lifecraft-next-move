@@ -6,7 +6,7 @@ export function MilestoneSection({
   onSelectTask,
 }: {
   milestone: Milestone;
-  onSelectTask?: (task: Task) => void;
+  onSelectTask?: ((task: Task) => void) | undefined;
 }) {
   const done = milestone.tasks.filter((t) => t.status === "done").length;
 

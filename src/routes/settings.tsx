@@ -101,7 +101,9 @@ function SettingsPage() {
         </section>
 
         <div className="flex justify-end">
-          <Button type="submit">Save changes</Button>
+          <Button type="submit" className="w-full sm:w-auto">
+            Save changes
+          </Button>
         </div>
       </form>
     </AppShell>

@@ -1,7 +1,13 @@
 import { ArrowRight, Check, Circle } from "lucide-react";
 import type { Task } from "@/data/mock";
 
-export function TaskRow({ task, onSelect }: { task: Task; onSelect?: (task: Task) => void }) {
+export function TaskRow({
+  task,
+  onSelect,
+}: {
+  task: Task;
+  onSelect?: ((task: Task) => void) | undefined;
+}) {
   const isDone = task.status === "done";
   const isCurrent = task.status === "current";
 

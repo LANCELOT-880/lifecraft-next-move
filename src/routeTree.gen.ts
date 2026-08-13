@@ -10,9 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CreateRouteImport } from './routes/create'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as GoalRouteImport } from './routes/goal'
 import { Route as JourneysRouteImport } from './routes/journeys'
 import { Route as NextRouteImport } from './routes/next'
+import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as SettingsRouteImport } from './routes/settings'
 
 const IndexRoute = IndexRouteImport.update({
@@ -20,9 +23,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CreateRoute = CreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GoalRoute = GoalRouteImport.update({
+  id: '/goal',
+  path: '/goal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JourneysRoute = JourneysRouteImport.update({
@@ -35,6 +48,11 @@ const NextRoute = NextRouteImport.update({
   path: '/next',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RoadmapRoute = RoadmapRouteImport.update({
+  id: '/roadmap',
+  path: '/roadmap',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -43,39 +61,76 @@ const SettingsRoute = SettingsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
+  '/goal': typeof GoalRoute
   '/journeys': typeof JourneysRoute
   '/next': typeof NextRoute
+  '/roadmap': typeof RoadmapRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
+  '/goal': typeof GoalRoute
   '/journeys': typeof JourneysRoute
   '/next': typeof NextRoute
+  '/roadmap': typeof RoadmapRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
+  '/goal': typeof GoalRoute
   '/journeys': typeof JourneysRoute
   '/next': typeof NextRoute
+  '/roadmap': typeof RoadmapRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/journeys' | '/next' | '/settings'
+  fullPaths:
+    | '/'
+    | '/create'
+    | '/dashboard'
+    | '/goal'
+    | '/journeys'
+    | '/next'
+    | '/roadmap'
+    | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/journeys' | '/next' | '/settings'
-  id: '__root__' | '/' | '/dashboard' | '/journeys' | '/next' | '/settings'
+  to:
+    | '/'
+    | '/create'
+    | '/dashboard'
+    | '/goal'
+    | '/journeys'
+    | '/next'
+    | '/roadmap'
+    | '/settings'
+  id:
+    | '__root__'
+    | '/'
+    | '/create'
+    | '/dashboard'
+    | '/goal'
+    | '/journeys'
+    | '/next'
+    | '/roadmap'
+    | '/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CreateRoute: typeof CreateRoute
   DashboardRoute: typeof DashboardRoute
+  GoalRoute: typeof GoalRoute
   JourneysRoute: typeof JourneysRoute
   NextRoute: typeof NextRoute
+  RoadmapRoute: typeof RoadmapRoute
   SettingsRoute: typeof SettingsRoute
 }
 
@@ -88,11 +143,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/create': {
+      id: '/create'
+      path: '/create'
+      fullPath: '/create'
+      preLoaderRoute: typeof CreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/goal': {
+      id: '/goal'
+      path: '/goal'
+      fullPath: '/goal'
+      preLoaderRoute: typeof GoalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/journeys': {
@@ -109,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NextRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/roadmap': {
+      id: '/roadmap'
+      path: '/roadmap'
+      fullPath: '/roadmap'
+      preLoaderRoute: typeof RoadmapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -121,9 +197,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CreateRoute: CreateRoute,
   DashboardRoute: DashboardRoute,
+  GoalRoute: GoalRoute,
   JourneysRoute: JourneysRoute,
   NextRoute: NextRoute,
+  RoadmapRoute: RoadmapRoute,
   SettingsRoute: SettingsRoute,
 }
 export const routeTree = rootRouteImport

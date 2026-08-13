@@ -7,7 +7,6 @@ export function JourneyCard({ journey }: { journey: Journey }) {
   return (
     <Link
       to="/goal"
-      search={{ id: journey.id }}
       className="group surface-panel block p-5 transition-all duration-300 hover:border-primary/40 hover:shadow-[var(--shadow-elevated)] sm:p-6"
     >
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">

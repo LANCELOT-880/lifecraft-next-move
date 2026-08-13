@@ -33,10 +33,10 @@ const meta = [
 function NextMovePage() {
   return (
     <AppShell>
-      <div className="relative mx-auto max-w-2xl">
+      <div className="relative mx-auto max-w-2xl overflow-hidden">
         <div
           aria-hidden
-          className="pointer-events-none absolute -inset-x-16 -top-24 h-72"
+          className="pointer-events-none absolute inset-x-0 -top-24 h-72"
           style={{ backgroundImage: "var(--gradient-hero)" }}
         />
 
@@ -73,9 +73,10 @@ function NextMovePage() {
             </p>
           </section>
 
-          <div className="mt-10 flex flex-wrap items-center gap-3">
+          <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <Button
               size="lg"
+              className="w-full sm:w-auto"
               onClick={() =>
                 toast.success("Task started", {
                   description: `${focusNextMove.minutes} minutes on ${focusNextMove.task}.`,
@@ -84,7 +85,7 @@ function NextMovePage() {
             >
               Start Task
             </Button>
-            <Button asChild variant="ghost" size="lg">
+            <Button asChild variant="ghost" size="lg" className="w-full sm:w-auto">
               <Link to="/goal">View journey</Link>
             </Button>
           </div>

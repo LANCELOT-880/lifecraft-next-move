@@ -40,7 +40,7 @@ export interface NextMove {
 export const user = {
   name: "Sameer",
   fullName: "Sameer Kahar",
-  email: "sameer@lifecraft.app",
+  email: "Demo account",
   initials: "SK",
   timezone: "Asia/Kolkata",
   dailyTime: "30 min",

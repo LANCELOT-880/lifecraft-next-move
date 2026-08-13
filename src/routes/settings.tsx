@@ -52,8 +52,8 @@ function SettingsPage() {
               <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" defaultValue={user.email} />
+              <Label htmlFor="account">Account</Label>
+              <Input id="account" defaultValue={user.email} readOnly />
             </div>
           </div>
         </section>
@@ -101,7 +101,9 @@ function SettingsPage() {
         </section>
 
         <div className="flex justify-end">
-          <Button type="submit">Save changes</Button>
+          <Button type="submit" className="w-full sm:w-auto">
+            Save changes
+          </Button>
         </div>
       </form>
     </AppShell>

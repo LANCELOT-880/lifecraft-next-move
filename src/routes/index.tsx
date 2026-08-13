@@ -26,7 +26,7 @@ export const Route = createFileRoute("/")({
 function Landing() {
   return (
     <div className="min-h-screen bg-background">
-      <header className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-6 sm:px-8">
+      <header className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-5 sm:px-8 sm:py-6">
         <span className="font-display text-sm font-bold tracking-[0.28em]">LIFECRAFT</span>
         <nav aria-label="Primary" className="flex items-center gap-2">
           <Button asChild variant="ghost" size="sm">
@@ -45,23 +45,23 @@ function Landing() {
             className="pointer-events-none absolute inset-0"
             style={{ backgroundImage: "var(--gradient-hero)" }}
           />
-          <div className="relative mx-auto grid max-w-6xl gap-14 px-5 pb-20 pt-16 sm:px-8 sm:pt-24 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
+          <div className="relative mx-auto grid max-w-6xl gap-12 px-4 pb-20 pt-12 sm:px-8 sm:pt-24 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
             <div>
               <p className="text-eyebrow text-primary">Lifecraft</p>
-              <h1 className="mt-5 font-display text-4xl font-semibold leading-[1.05] sm:text-6xl">
+              <h1 className="mt-5 font-display text-[2rem] font-semibold leading-[1.08] sm:text-5xl lg:text-6xl">
                 Turn intentions into your next move.
               </h1>
               <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
                 Turn vague goals into clear journeys, meaningful progress and one actionable next
                 step.
               </p>
-              <div className="mt-9 flex flex-wrap items-center gap-3">
-                <Button asChild size="lg">
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                <Button asChild size="lg" className="w-full sm:w-auto">
                   <Link to="/create">
                     Start Your Journey <ArrowRight className="size-4" aria-hidden />
                   </Link>
                 </Button>
-                <Button asChild variant="ghost" size="lg">
+                <Button asChild variant="ghost" size="lg" className="w-full sm:w-auto">
                   <Link to="/dashboard">See a live journey</Link>
                 </Button>
               </div>
@@ -120,7 +120,7 @@ function Landing() {
 
         <section
           aria-labelledby="how-heading"
-          className="mx-auto max-w-6xl px-5 pb-24 sm:px-8"
+          className="mx-auto max-w-6xl px-4 pb-20 sm:px-8 sm:pb-24"
         >
           <h2 id="how-heading" className="text-eyebrow text-muted-foreground">
             How it works
@@ -138,7 +138,7 @@ function Landing() {
       </main>
 
       <footer className="border-t border-border">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-8 sm:px-8">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-8 sm:px-8">
           <span className="font-display text-xs tracking-[0.28em] text-muted-foreground">
             LIFECRAFT
           </span>

@@ -10,7 +10,7 @@ import { categoryLabels } from "@/lib/journey/types";
 
 export const Route = createFileRoute("/roadmap")({
   validateSearch: (search: Record<string, unknown>) => ({
-    id: typeof search.id === "string" ? search.id : "",
+    id: typeof search["id"] === "string" ? (search["id"] as string) : "",
   }),
   head: () => ({
     meta: [

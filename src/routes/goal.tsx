@@ -9,7 +9,7 @@ import { useJourney } from "@/lib/journey/useJourneys";
 
 export const Route = createFileRoute("/goal")({
   validateSearch: (search: Record<string, unknown>) => ({
-    id: typeof search.id === "string" ? search.id : "",
+    id: typeof search["id"] === "string" ? (search["id"] as string) : "",
   }),
   head: () => ({
     meta: [

@@ -3,7 +3,7 @@ import { Plus } from "lucide-react";
 import { AppShell } from "@/components/lifecraft/AppShell";
 import { JourneyCard } from "@/components/lifecraft/JourneyCard";
 import { Button } from "@/components/ui/button";
-import { journeys } from "@/data/mock";
+import { useJourneys } from "@/lib/journey/useJourneys";
 
 export const Route = createFileRoute("/journeys")({
   head: () => ({
@@ -24,6 +24,8 @@ export const Route = createFileRoute("/journeys")({
 });
 
 function Journeys() {
+  const journeys = useJourneys();
+
   return (
     <AppShell>
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:items-end sm:justify-between">

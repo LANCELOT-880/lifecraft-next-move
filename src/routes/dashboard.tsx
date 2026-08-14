@@ -4,7 +4,9 @@ import { AppShell } from "@/components/lifecraft/AppShell";
 import { JourneyCard } from "@/components/lifecraft/JourneyCard";
 import { NextMoveCard } from "@/components/lifecraft/NextMoveCard";
 import { Button } from "@/components/ui/button";
-import { dashboardNextMove, journeys, user } from "@/data/mock";
+import { user } from "@/data/mock";
+import { getNextMove } from "@/lib/journey/journeyStore";
+import { useJourney, useJourneys } from "@/lib/journey/useJourneys";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -25,6 +27,10 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function Dashboard() {
+  const journeys = useJourneys();
+  const activeJourney = useJourney();
+  const nextMove = activeJourney ? getNextMove(activeJourney) : null;
+
   return (
     <AppShell>
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:items-end sm:justify-between">
@@ -40,7 +46,7 @@ function Dashboard() {
       </header>
 
       <div className="mt-8">
-        <NextMoveCard move={dashboardNextMove} />
+        <NextMoveCard move={nextMove} />
       </div>
 
       <section className="mt-12" aria-labelledby="journeys-heading">

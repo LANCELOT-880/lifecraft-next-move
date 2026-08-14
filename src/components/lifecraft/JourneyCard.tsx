@@ -1,12 +1,17 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight } from "lucide-react";
-import type { Journey } from "@/data/mock";
+import { allTasks, completedCount } from "@/lib/journey/journeyStore";
+import type { Journey } from "@/lib/journey/types";
 import { ProgressMeter } from "./ProgressMeter";
 
 export function JourneyCard({ journey }: { journey: Journey }) {
+  const total = allTasks(journey).length;
+  const done = completedCount(journey);
+
   return (
     <Link
       to="/goal"
+      search={{ id: journey.id }}
       className="group surface-panel block p-5 transition-all duration-300 hover:border-primary/40 hover:shadow-[var(--shadow-elevated)] sm:p-6"
     >
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
@@ -18,10 +23,13 @@ export function JourneyCard({ journey }: { journey: Journey }) {
       </div>
 
       <div className="mt-6">
-        <ProgressMeter value={journey.progress} label={`${journey.milestonesDone} / ${journey.milestonesTotal} milestones`} />
+        <ProgressMeter value={journey.progress} label={`${done} / ${total} tasks`} />
       </div>
 
-      <p className="mt-4 text-xs text-muted-foreground">{journey.cadence}</p>
+      <p className="mt-4 text-xs text-muted-foreground">
+        {journey.dailyTime} daily
+        {journey.targetDate ? ` · target ${journey.targetDate}` : ""}
+      </p>
     </Link>
   );
 }

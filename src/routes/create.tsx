@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { journeyStore } from "@/lib/journey/journeyStore";
 
 export const Route = createFileRoute("/create")({
   head: () => ({
@@ -30,7 +31,10 @@ const timeOptions = ["15 min", "30 min", "1 hour", "Flexible"];
 function CreateGoal() {
   const navigate = useNavigate();
   const [goal, setGoal] = useState("");
+  const [why, setWhy] = useState("");
   const [daily, setDaily] = useState("30 min");
+  const [targetDate, setTargetDate] = useState("");
+  const [error, setError] = useState("");
 
   return (
     <AppShell>
@@ -45,11 +49,18 @@ function CreateGoal() {
           onSubmit={(e) => {
             e.preventDefault();
             if (!goal.trim()) {
-              toast.error("Describe your goal first");
+              setError("Describe your goal before creating a journey.");
               return;
             }
-            toast.success("Journey drafted", { description: "Review your roadmap below." });
-            navigate({ to: "/roadmap" });
+            setError("");
+            const journey = journeyStore.create({
+              goal,
+              why,
+              dailyTime: daily,
+              targetDate,
+            });
+            toast.success("Your journey is ready.");
+            navigate({ to: "/roadmap", search: { id: journey.id } });
           }}
         >
           <div className="surface-panel p-5 sm:p-6">
@@ -59,16 +70,31 @@ function CreateGoal() {
             <Textarea
               id="goal"
               value={goal}
-              onChange={(e) => setGoal(e.target.value)}
+              onChange={(e) => {
+                setGoal(e.target.value);
+                if (error) setError("");
+              }}
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? "goal-error" : undefined}
               placeholder="I want to learn Japanese..."
               className="mt-3 min-h-32 resize-none border-0 bg-transparent px-0 font-display text-lg shadow-none focus-visible:ring-0 md:text-xl"
             />
+            {error ? (
+              <p id="goal-error" role="alert" className="text-sm text-destructive">
+                {error}
+              </p>
+            ) : null}
           </div>
 
           <div className="surface-panel space-y-6 p-5 sm:p-6">
             <div className="space-y-2">
               <Label htmlFor="why">Why is this important?</Label>
-              <Input id="why" placeholder="Optional — it keeps you honest on hard days" />
+              <Input
+                id="why"
+                value={why}
+                onChange={(e) => setWhy(e.target.value)}
+                placeholder="Optional — it keeps you honest on hard days"
+              />
             </div>
 
             <div className="space-y-3">
@@ -97,7 +123,12 @@ function CreateGoal() {
 
             <div className="space-y-2 sm:max-w-56">
               <Label htmlFor="target">Target date</Label>
-              <Input id="target" type="date" />
+              <Input
+                id="target"
+                type="date"
+                value={targetDate}
+                onChange={(e) => setTargetDate(e.target.value)}
+              />
             </div>
           </div>
 

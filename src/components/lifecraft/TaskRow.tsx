@@ -1,21 +1,24 @@
 import { ArrowRight, Check, Circle } from "lucide-react";
-import type { Task } from "@/data/mock";
+import type { Task } from "@/lib/journey/types";
 
 export function TaskRow({
   task,
-  onSelect,
+  isNext = false,
+  onToggle,
 }: {
   task: Task;
-  onSelect?: ((task: Task) => void) | undefined;
+  isNext?: boolean;
+  onToggle?: ((task: Task) => void) | undefined;
 }) {
-  const isDone = task.status === "done";
-  const isCurrent = task.status === "current";
+  const isDone = task.completed;
+  const isCurrent = !isDone && isNext;
 
   return (
     <button
       type="button"
-      onClick={() => onSelect?.(task)}
-      aria-label={`${task.title} — ${task.status}`}
+      onClick={() => onToggle?.(task)}
+      aria-pressed={isDone}
+      aria-label={`${task.title} — ${isDone ? "completed" : "not completed"}`}
       className={`grid w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-lg border px-3 py-3 text-left transition-colors duration-200 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-4 sm:px-4 ${
         isCurrent
           ? "border-primary/40 bg-accent-soft"
@@ -50,12 +53,12 @@ export function TaskRow({
           {task.title}
         </span>
         <span className="mt-0.5 block text-xs text-muted-foreground sm:hidden">
-          {task.minutes} min · {task.difficulty}
+          {task.estimatedMinutes} min · {task.difficulty}
         </span>
       </span>
 
       <span className="hidden shrink-0 text-xs text-muted-foreground sm:block">
-        {task.minutes} min · {task.difficulty}
+        {task.estimatedMinutes} min · {task.difficulty}
       </span>
     </button>
   );

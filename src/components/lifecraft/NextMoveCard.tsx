@@ -1,13 +1,22 @@
+import { Link } from "@tanstack/react-router";
 import { Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import type { NextMove } from "@/data/mock";
+import type { NextMove } from "@/lib/journey/types";
 
-export function NextMoveCard({ move, variant = "panel" }: { move: NextMove; variant?: "panel" | "hero" }) {
-  const start = () =>
+export function NextMoveCard({
+  move,
+  variant = "panel",
+}: {
+  move: NextMove | null;
+  variant?: "panel" | "hero";
+}) {
+  const start = () => {
+    if (!move) return;
     toast.success("Task started", {
       description: `${move.task} · ${move.minutes} minutes on the clock.`,
     });
+  };
 
   return (
     <section
@@ -33,18 +42,28 @@ export function NextMoveCard({ move, variant = "panel" }: { move: NextMove; vari
             variant === "hero" ? "text-2xl sm:text-3xl" : "text-xl sm:text-2xl"
           }`}
         >
-          {move.task}
+          {move ? move.task : "Every task is complete."}
         </p>
 
         <p className="mt-2 text-sm text-muted-foreground">
-          {move.minutes} minutes · {move.impact}
+          {move
+            ? `${move.minutes} minutes · ${move.impact}`
+            : "Create a new goal to keep the momentum going."}
         </p>
 
         <div className="mt-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
-          <p className="min-w-0 truncate text-xs text-muted-foreground">{move.journey}</p>
-          <Button onClick={start} className="shrink-0">
-            Start
-          </Button>
+          <p className="min-w-0 truncate text-xs text-muted-foreground">
+            {move ? move.journey : "Nothing queued"}
+          </p>
+          {move ? (
+            <Button onClick={start} className="shrink-0">
+              Start
+            </Button>
+          ) : (
+            <Button asChild className="shrink-0">
+              <Link to="/create">New goal</Link>
+            </Button>
+          )}
         </div>
       </div>
     </section>

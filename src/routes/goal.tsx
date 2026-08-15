@@ -88,7 +88,7 @@ function GoalDetails() {
             <MilestoneSection
               key={phase.id}
               phase={phase}
-              nextTaskId={nextMove?.taskId}
+            journeyId={journey.id}
               onToggleTask={(task) => journeyStore.toggleTask(journey.id, task.id)}
             />
           ))}

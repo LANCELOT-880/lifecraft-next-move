@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import { Zap } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { NextMove } from "@/lib/journey/types";
 
@@ -11,13 +10,6 @@ export function NextMoveCard({
   move: NextMove | null;
   variant?: "panel" | "hero";
 }) {
-  const start = () => {
-    if (!move) return;
-    toast.success("Task started", {
-      description: `${move.task} · ${move.minutes} minutes on the clock.`,
-    });
-  };
-
   return (
     <section
       aria-labelledby="next-move-heading"
@@ -56,8 +48,10 @@ export function NextMoveCard({
             {move ? move.journey : "Nothing queued"}
           </p>
           {move ? (
-            <Button onClick={start} className="shrink-0">
-              Start
+            <Button asChild className="shrink-0">
+              <Link to="/task" search={{ journey: move.journeyId, task: move.taskId }}>
+                Start
+              </Link>
             </Button>
           ) : (
             <Button asChild className="shrink-0">

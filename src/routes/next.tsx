@@ -74,16 +74,10 @@ function NextMovePage() {
               </section>
 
               <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-                <Button
-                  size="lg"
-                  className="w-full sm:w-auto"
-                  onClick={() =>
-                    toast.success("Task started", {
-                      description: `${move.minutes} minutes on ${move.task}.`,
-                    })
-                  }
-                >
-                  Start Task
+                <Button asChild size="lg" className="w-full sm:w-auto">
+                  <Link to="/task" search={{ journey: move.journeyId, task: move.taskId }}>
+                    Start Task
+                  </Link>
                 </Button>
                 <Button
                   variant="secondary"

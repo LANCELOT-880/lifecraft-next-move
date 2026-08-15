@@ -89,6 +89,7 @@ function Roadmap() {
           <MilestoneSection
             key={phase.id}
             phase={phase}
+            journeyId={journey.id}
             nextTaskId={nextMove?.taskId}
             onToggleTask={(task) => journeyStore.toggleTask(journey.id, task.id)}
           />

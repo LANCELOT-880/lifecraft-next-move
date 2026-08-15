@@ -38,9 +38,7 @@ export function TaskRow({
     </>
   );
 
-  const bodyClass = `grid min-w-0 grid-cols-[minmax(0,1fr)] items-center gap-3 text-left sm:grid-cols-[minmax(0,1fr)_auto${
-    journeyId ? "_auto" : ""
-  }] sm:gap-4`;
+  const bodyClass = "flex min-w-0 items-center justify-between gap-3 text-left sm:gap-4";
 
   return (
     <div

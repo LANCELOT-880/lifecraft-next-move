@@ -3,10 +3,12 @@ import { TaskRow } from "./TaskRow";
 
 export function MilestoneSection({
   phase,
+  journeyId,
   nextTaskId,
   onToggleTask,
 }: {
   phase: Phase;
+  journeyId?: string | undefined;
   nextTaskId?: string | undefined;
   onToggleTask?: ((task: Task) => void) | undefined;
 }) {
@@ -31,7 +33,7 @@ export function MilestoneSection({
       <ul className="mt-4 space-y-1">
         {phase.tasks.map((task) => (
           <li key={task.id}>
-            <TaskRow task={task} isNext={task.id === nextTaskId} onToggle={onToggleTask} />
+            <TaskRow task={task} journeyId={journeyId} isNext={task.id === nextTaskId} onToggle={onToggleTask} />
           </li>
         ))}
       </ul>

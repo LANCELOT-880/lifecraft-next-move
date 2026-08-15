@@ -1,7 +1,14 @@
 import { analyzeGoal, cleanGoalTitle } from "./analyzer";
 import { demoJourneys } from "./demo";
 import { journeyTemplates } from "./templates";
-import { categoryLabels, type GoalInput, type Journey, type NextMove, type Task } from "./types";
+import {
+  categoryLabels,
+  type GoalInput,
+  type Journey,
+  type NextMove,
+  type Phase,
+  type Task,
+} from "./types";
 
 const JOURNEYS_KEY = "lifecraft.journeys.v1";
 const ACTIVE_KEY = "lifecraft.activeJourney.v1";
@@ -20,6 +27,17 @@ export function calcProgress(journey: Journey): number {
   const tasks = allTasks(journey);
   if (tasks.length === 0) return 0;
   return Math.round((tasks.filter((task) => task.completed).length / tasks.length) * 100);
+}
+
+export function findTask(
+  journey: Journey,
+  taskId: string,
+): { task: Task; phase: Phase } | null {
+  for (const phase of journey.phases) {
+    const task = phase.tasks.find((item) => item.id === taskId);
+    if (task) return { task, phase };
+  }
+  return null;
 }
 
 export function getNextMove(journey: Journey): NextMove | null {

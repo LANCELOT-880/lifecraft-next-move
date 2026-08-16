@@ -222,6 +222,8 @@ function TaskLesson() {
           </Link>
         </Button>
       </div>
+        </>
+      )}
     </AppShell>
   );
 }

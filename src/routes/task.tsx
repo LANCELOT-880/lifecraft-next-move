@@ -53,7 +53,7 @@ function TaskLesson() {
   }
 
   const { task, phase } = found;
-  const { lesson, isTailored } = getLesson(task, journey);
+  const lesson = getLesson(task, journey);
 
   const complete = () => {
     if (!task.completed) journeyStore.toggleTask(journey.id, task.id);
@@ -101,12 +101,25 @@ function TaskLesson() {
         ))}
       </dl>
 
-      {!isTailored ? (
-        <p className="mt-6 rounded-lg border border-border bg-surface-2/60 px-4 py-3 text-sm text-muted-foreground">
-          Start this task by reviewing the milestone and completing the suggested activity below.
-        </p>
-      ) : null}
-
+      {!lesson ? (
+        <>
+          <p className="mt-6 rounded-lg border border-border bg-surface-2/60 px-4 py-3 text-sm text-muted-foreground">
+            Lesson content unavailable for this step yet. You can still work on the step and mark it
+            complete.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Button size="lg" className="w-full sm:w-auto" onClick={complete}>
+              {task.completed ? "Task completed" : "Complete Task"}
+            </Button>
+            <Button asChild variant="ghost" size="lg" className="w-full sm:w-auto">
+              <Link to="/goal" search={{ id: journey.id }}>
+                Back to journey
+              </Link>
+            </Button>
+          </div>
+        </>
+      ) : (
+        <>
       <section className="surface-panel mt-6 p-5 sm:p-6" aria-labelledby="learn-heading">
         <h2 id="learn-heading" className="text-eyebrow text-muted-foreground">
           Learn

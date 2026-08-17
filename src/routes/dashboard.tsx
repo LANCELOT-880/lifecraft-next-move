@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import { AppShell } from "@/components/lifecraft/AppShell";
 import { JourneyCard } from "@/components/lifecraft/JourneyCard";
 import { NextMoveCard } from "@/components/lifecraft/NextMoveCard";
+import { RewardsSummary } from "@/components/lifecraft/RewardsSummary";
 import { Button } from "@/components/ui/button";
 import { user } from "@/data/mock";
 import { getNextMove } from "@/lib/journey/journeyStore";
@@ -48,6 +49,8 @@ function Dashboard() {
       <div className="mt-8">
         <NextMoveCard move={nextMove} />
       </div>
+
+      <RewardsSummary className="mt-4" />
 
       <section className="mt-12" aria-labelledby="journeys-heading">
         <div className="flex items-baseline justify-between gap-4">

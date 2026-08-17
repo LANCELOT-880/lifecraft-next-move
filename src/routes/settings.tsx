@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/lifecraft/AppShell";
+import { RewardsSummary } from "@/components/lifecraft/RewardsSummary";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,6 +57,7 @@ function SettingsPage() {
               <Input id="account" defaultValue={user.email} readOnly />
             </div>
           </div>
+          <RewardsSummary className="mt-5" />
         </section>
 
         <section className="surface-panel p-5 sm:p-6">

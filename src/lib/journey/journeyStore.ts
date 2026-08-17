@@ -1,5 +1,6 @@
 import { analyzeGoal, cleanGoalTitle } from "./analyzer";
 import { demoJourneys } from "./demo";
+import { awardForCompletedTask } from "./rewards";
 import { journeyTemplates } from "./templates";
 import {
   categoryLabels,
@@ -155,7 +156,9 @@ export const journeyStore = {
     journeyStore.setActiveId(journey.id);
     return journey;
   },
-  toggleTask(journeyId: string, taskId: string) {
+  toggleTask(journeyId: string, taskId: string): { xp: number; gems: number } {
+    let completedJourney: Journey | null = null;
+    let completedTask: Task | null = null;
     const next = journeyStore.getSnapshot().map((journey) => {
       if (journey.id !== journeyId) return journey;
       const updated: Journey = {
@@ -167,9 +170,19 @@ export const journeyStore = {
           ),
         })),
       };
-      return { ...updated, progress: calcProgress(updated) };
+      const withProgress = { ...updated, progress: calcProgress(updated) };
+      const toggled = findTask(withProgress, taskId);
+      if (toggled?.task.completed) {
+        completedJourney = withProgress;
+        completedTask = toggled.task;
+      }
+      return withProgress;
     });
     journeyStore.setAll(next);
+    if (completedJourney && completedTask) {
+      return awardForCompletedTask(completedJourney, completedTask);
+    }
+    return { xp: 0, gems: 0 };
   },
   getActiveId(): string | null {
     if (!isBrowser()) return null;

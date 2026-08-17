@@ -3,8 +3,11 @@ import { useState } from "react";
 import { Check, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/lifecraft/AppShell";
+import { ResourceList } from "@/components/lifecraft/ResourceList";
 import { Button } from "@/components/ui/button";
 import { getLesson } from "@/lib/journey/lessons";
+import { getResources } from "@/lib/journey/resources";
+import { awardPracticeCompletion } from "@/lib/journey/rewards";
 import { findTask, getNextMove, journeyStore } from "@/lib/journey/journeyStore";
 import { useJourney } from "@/lib/journey/useJourneys";
 
@@ -54,9 +57,20 @@ function TaskLesson() {
 
   const { task, phase } = found;
   const lesson = getLesson(task, journey);
+  const resources = getResources(task, journey);
+
+  const answerAll = (next: Record<string, number>) => {
+    if (!lesson) return;
+    const allCorrect = lesson.practice.every((item) => next[item.id] === item.answerIndex);
+    if (!allCorrect) return;
+    const gained = awardPracticeCompletion(task.id);
+    if (gained.xp > 0) toast.success(`Practice complete — +${gained.xp} XP`);
+  };
 
   const complete = () => {
-    if (!task.completed) journeyStore.toggleTask(journey.id, task.id);
+    const gained = task.completed
+      ? { xp: 0, gems: 0 }
+      : journeyStore.toggleTask(journey.id, task.id);
     const remaining = getNextMove({
       ...journey,
       phases: journey.phases.map((p) => ({
@@ -64,8 +78,11 @@ function TaskLesson() {
         tasks: p.tasks.map((item) => (item.id === task.id ? { ...item, completed: true } : item)),
       })),
     });
+    const reward =
+      gained.xp > 0 || gained.gems > 0 ? ` +${gained.xp} XP · +${gained.gems} Gems.` : "";
     toast.success("Task completed.", {
-      description: remaining ? "Your next move is ready." : "Every task in this journey is done.",
+      description:
+        (remaining ? "Your next move is ready." : "Every task in this journey is done.") + reward,
     });
     navigate({ to: "/next" });
   };
@@ -107,6 +124,7 @@ function TaskLesson() {
             Lesson content unavailable for this step yet. You can still work on the step and mark it
             complete.
           </p>
+          <ResourceList resources={resources} />
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Button size="lg" className="w-full sm:w-auto" onClick={complete}>
               {task.completed ? "Task completed" : "Complete Task"}
@@ -169,7 +187,13 @@ function TaskLesson() {
                       <button
                         key={option}
                         type="button"
-                        onClick={() => setAnswers((prev) => ({ ...prev, [item.id]: index }))}
+                        onClick={() =>
+                          setAnswers((prev) => {
+                            const next = { ...prev, [item.id]: index };
+                            answerAll(next);
+                            return next;
+                          })
+                        }
                         aria-pressed={isPicked}
                         className={`grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors duration-200 ${
                           isPicked && index === item.answerIndex
@@ -211,6 +235,8 @@ function TaskLesson() {
         </h2>
         <p className="mt-4 text-sm leading-relaxed text-foreground/90">{lesson.exercise}</p>
       </section>
+
+      <ResourceList resources={resources} />
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
         <Button size="lg" className="w-full sm:w-auto" onClick={complete}>

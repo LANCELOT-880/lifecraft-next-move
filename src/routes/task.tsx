@@ -235,6 +235,8 @@ function TaskLesson() {
         <p className="mt-4 text-sm leading-relaxed text-foreground/90">{lesson.exercise}</p>
       </section>
 
+      <ResourceList resources={resources} />
+
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
         <Button size="lg" className="w-full sm:w-auto" onClick={complete}>
           {task.completed ? "Task completed" : "Complete Task"}

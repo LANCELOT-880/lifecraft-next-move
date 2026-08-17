@@ -124,6 +124,7 @@ function TaskLesson() {
             Lesson content unavailable for this step yet. You can still work on the step and mark it
             complete.
           </p>
+          <ResourceList resources={resources} />
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Button size="lg" className="w-full sm:w-auto" onClick={complete}>
               {task.completed ? "Task completed" : "Complete Task"}

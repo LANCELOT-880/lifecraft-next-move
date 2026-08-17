@@ -10,6 +10,11 @@ export interface Task {
   estimatedMinutes: number;
   difficulty: Difficulty;
   impact: Impact;
+  /** Optional per-step overrides for the local reward system. */
+  xpReward?: number;
+  gemReward?: number;
+  /** Architectural foundation for a future LIFECRAFT Plus tier. Nothing is locked today. */
+  isPremium?: boolean;
 }
 
 export interface Phase {

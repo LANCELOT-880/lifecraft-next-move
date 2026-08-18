@@ -79,15 +79,12 @@ function TaskLesson() {
         tasks: p.tasks.map((item) => (item.id === task.id ? { ...item, completed: true } : item)),
       })),
     });
-    const reward =
-      gained.xp > 0 || gained.gems > 0 ? ` +${gained.xp} XP · +${gained.gems} Gems.` : "";
     toast.success("Task completed.", {
       description:
         (gained.xp > 0 || gained.gems > 0
           ? `+${gained.xp} XP · +${gained.gems} Gems. `
           : "Already rewarded. ") + (remaining ? "Your next move is ready." : "Every task in this journey is done."),
     });
-    void reward;
     navigate({ to: "/next" });
   };
 

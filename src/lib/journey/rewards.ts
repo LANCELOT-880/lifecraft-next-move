@@ -12,11 +12,21 @@ export const REWARDS = {
 
 export const XP_PER_LEVEL = 500;
 
+export interface RewardEntry {
+  key: string;
+  label: string;
+  xp: number;
+  gems: number;
+  at: string;
+}
+
 export interface RewardState {
   xp: number;
   gems: number;
   /** Keys of activities already rewarded, so nothing pays out twice. */
   awarded: string[];
+  /** Newest-first log of granted rewards, for the XP/Gem readouts. */
+  history: RewardEntry[];
 }
 
 export interface RewardProgress {
@@ -26,10 +36,12 @@ export interface RewardProgress {
   xpIntoLevel: number;
   xpForNextLevel: number;
   percentToNextLevel: number;
+  xpToNextLevel: number;
+  recent: RewardEntry[];
 }
 
 const KEY = "lifecraft.rewards.v1";
-const EMPTY: RewardState = { xp: 0, gems: 0, awarded: [] };
+const EMPTY: RewardState = { xp: 0, gems: 0, awarded: [], history: [] };
 
 function isBrowser(): boolean {
   return typeof window !== "undefined";
@@ -45,6 +57,11 @@ function read(): RewardState {
       xp: typeof parsed.xp === "number" ? parsed.xp : 0,
       gems: typeof parsed.gems === "number" ? parsed.gems : 0,
       awarded: Array.isArray(parsed.awarded) ? parsed.awarded.filter((k) => typeof k === "string") : [],
+      history: Array.isArray(parsed.history)
+        ? (parsed.history.filter(
+            (entry) => entry && typeof entry === "object" && typeof (entry as RewardEntry).key === "string",
+          ) as RewardEntry[])
+        : [],
     };
   } catch {
     return EMPTY;
@@ -76,6 +93,8 @@ export function getRewardProgress(state: RewardState): RewardProgress {
     xpIntoLevel,
     xpForNextLevel: XP_PER_LEVEL,
     percentToNextLevel: Math.round((xpIntoLevel / XP_PER_LEVEL) * 100),
+    xpToNextLevel: XP_PER_LEVEL - xpIntoLevel,
+    recent: state.history.slice(0, 5),
   };
 }
 
@@ -95,10 +114,16 @@ export const rewardStore = {
     return rewardStore.getSnapshot().awarded.includes(key);
   },
   /** Awards once per key. Returns what was actually granted. */
-  award(key: string, xp: number, gems: number): { xp: number; gems: number } {
+  award(key: string, xp: number, gems: number, label = "Reward"): { xp: number; gems: number } {
     const state = rewardStore.getSnapshot();
     if (state.awarded.includes(key)) return { xp: 0, gems: 0 };
-    commit({ xp: state.xp + xp, gems: state.gems + gems, awarded: [...state.awarded, key] });
+    const entry: RewardEntry = { key, label, xp, gems, at: new Date().toISOString() };
+    commit({
+      xp: state.xp + xp,
+      gems: state.gems + gems,
+      awarded: [...state.awarded, key],
+      history: [entry, ...state.history].slice(0, 25),
+    });
     return { xp, gems };
   },
   reset() {
@@ -118,19 +143,30 @@ export function awardForCompletedTask(journey: Journey, task: Task): { xp: numbe
     `task:${task.id}`,
     task.xpReward ?? REWARDS.lessonXp,
     task.gemReward ?? REWARDS.stepGems,
+    `Completed ${task.title}`,
   );
   xp += step.xp;
   gems += step.gems;
 
   const phase = journey.phases.find((item) => item.tasks.some((t) => t.id === task.id));
   if (phase && phase.tasks.every((t) => t.completed)) {
-    const phaseAward = rewardStore.award(`phase:${phase.id}`, REWARDS.phaseXp, REWARDS.phaseGems);
+    const phaseAward = rewardStore.award(
+      `phase:${phase.id}`,
+      REWARDS.phaseXp,
+      REWARDS.phaseGems,
+      `Finished phase ${phase.title}`,
+    );
     xp += phaseAward.xp;
     gems += phaseAward.gems;
   }
 
   if (journey.phases.every((p) => p.tasks.every((t) => t.completed))) {
-    const journeyAward = rewardStore.award(`journey:${journey.id}`, 0, REWARDS.journeyGems);
+    const journeyAward = rewardStore.award(
+      `journey:${journey.id}`,
+      0,
+      REWARDS.journeyGems,
+      `Completed journey ${journey.title}`,
+    );
     xp += journeyAward.xp;
     gems += journeyAward.gems;
   }
@@ -139,6 +175,9 @@ export function awardForCompletedTask(journey: Journey, task: Task): { xp: numbe
 }
 
 /** Practice XP for finishing all check-your-understanding questions of a step. */
-export function awardPracticeCompletion(taskId: string): { xp: number; gems: number } {
-  return rewardStore.award(`practice:${taskId}`, REWARDS.practiceXp, 0);
+export function awardPracticeCompletion(
+  taskId: string,
+  taskTitle = "practice",
+): { xp: number; gems: number } {
+  return rewardStore.award(`practice:${taskId}`, REWARDS.practiceXp, 0, `Practice — ${taskTitle}`);
 }

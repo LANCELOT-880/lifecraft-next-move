@@ -4,6 +4,7 @@ import { Check, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/lifecraft/AppShell";
 import { ResourceList } from "@/components/lifecraft/ResourceList";
+import { RewardsSummary } from "@/components/lifecraft/RewardsSummary";
 import { Button } from "@/components/ui/button";
 import { getLesson } from "@/lib/journey/lessons";
 import { getResources } from "@/lib/journey/resources";
@@ -63,7 +64,7 @@ function TaskLesson() {
     if (!lesson) return;
     const allCorrect = lesson.practice.every((item) => next[item.id] === item.answerIndex);
     if (!allCorrect) return;
-    const gained = awardPracticeCompletion(task.id);
+    const gained = awardPracticeCompletion(task.id, task.title);
     if (gained.xp > 0) toast.success(`Practice complete — +${gained.xp} XP`);
   };
 
@@ -78,11 +79,11 @@ function TaskLesson() {
         tasks: p.tasks.map((item) => (item.id === task.id ? { ...item, completed: true } : item)),
       })),
     });
-    const reward =
-      gained.xp > 0 || gained.gems > 0 ? ` +${gained.xp} XP · +${gained.gems} Gems.` : "";
     toast.success("Task completed.", {
       description:
-        (remaining ? "Your next move is ready." : "Every task in this journey is done.") + reward,
+        (gained.xp > 0 || gained.gems > 0
+          ? `+${gained.xp} XP · +${gained.gems} Gems. `
+          : "Already rewarded. ") + (remaining ? "Your next move is ready." : "Every task in this journey is done."),
     });
     navigate({ to: "/next" });
   };
@@ -117,6 +118,8 @@ function TaskLesson() {
           </div>
         ))}
       </dl>
+
+      <RewardsSummary className="mt-4" />
 
       {!lesson ? (
         <>

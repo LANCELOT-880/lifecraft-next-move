@@ -115,9 +115,9 @@ export const languageResourcesByTarget: Record<string, ResourcesByKey> = {
     "learn essential vocabulary": R("japanese-vocabulary", [
       [
         "article",
-        "Tofugu Japanese vocabulary guide",
-        "A practical starting point for building useful Japanese vocabulary.",
-        "https://www.tofugu.com/japanese/japanese-vocabulary/",
+        "Tofugu Learn Japanese guide",
+        "A curated guide covering Japanese reading, writing, speaking, and listening resources.",
+        "https://www.tofugu.com/learn-japanese/",
       ],
     ]),
     "learn basic greetings": R("japanese-greetings", [

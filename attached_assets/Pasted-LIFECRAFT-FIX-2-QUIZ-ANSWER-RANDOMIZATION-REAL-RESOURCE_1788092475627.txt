@@ -1,0 +1,187 @@
+LIFECRAFT FIX 2 — QUIZ ANSWER RANDOMIZATION + REAL RESOURCE LINKS
+
+Use the previous audit and the successful language-specific journey fix as the current source of truth.
+
+IMPORTANT:
+- Do NOT redesign the UI.
+- Do NOT change typography, colors, layout, navigation, cards, spacing, or route structure.
+- Do NOT modify the language-specific journey fix that was just completed.
+- Do NOT modify XP/Gems, progress calculation, Settings persistence, or premium architecture yet.
+- Do NOT add backend services, authentication, Supabase, AI APIs, payments, or subscriptions.
+- Keep the existing React + TypeScript + localStorage architecture.
+
+==================================================
+1. FIX QUIZ ANSWER STRUCTURE
+==================================================
+
+Current audit finding:
+
+PracticeQuestion currently stores:
+- options: string[]
+- answerIndex: number
+
+The lesson authoring data is heavily biased:
+- 211 questions use answerIndex 0
+- 7 use answerIndex 1
+- 1 uses answerIndex 2
+
+This causes the correct answer to appear as the first option most of the time.
+
+Refactor the quiz question model so correctness is based on stable answer identity, not displayed array position.
+
+Use a structure conceptually like:
+
+answers: [
+  { id: "...", text: "...", isCorrect: false },
+  { id: "...", text: "...", isCorrect: true }
+]
+
+or an equivalent clean typed approach.
+
+The UI should render shuffled answer choices.
+
+The correct answer must remain correct after shuffling.
+
+Do NOT grade by:
+- displayed index
+- first item
+- A/B/C/D position
+
+Grade by stable answer identity / isCorrect.
+
+==================================================
+2. SHUFFLE ANSWERS SAFELY
+==================================================
+
+Shuffle the choices for each question when the question is initialized/rendered.
+
+Requirements:
+- correct answers should naturally appear in different positions
+- answer order should remain stable while the user is answering that question
+- moving to another question can use a different shuffle
+- selecting an answer must not reshuffle the choices
+- feedback must still show Correct / Incorrect accurately
+- selected-answer state must reset appropriately between questions/tasks
+
+Use a proper local shuffle implementation.
+
+Do not hardcode an A/B/C/D pattern.
+
+==================================================
+3. KEEP EXISTING LESSON CONTENT
+==================================================
+
+Do not rewrite all lesson questions unnecessarily.
+
+Migrate the existing question data into the new answer structure while preserving:
+- question text
+- answer text
+- correct answer meaning
+- feedback behavior
+- practice completion logic
+
+If the old answerIndex data is needed during migration, convert it into the new stable answer object format.
+
+==================================================
+4. FIX RESOURCE URL DATA
+==================================================
+
+The audit confirmed that current resource URLs use placeholders like:
+
+https://example.com/lifecraft/mock/...
+
+Replace visible placeholder resources with real usable educational destinations where appropriate.
+
+Resource types may include:
+- VIDEO
+- ARTICLE
+- DOCUMENTATION
+- PRACTICE
+
+For each real resource:
+- use a valid URL
+- ensure it belongs to the specific lesson/task
+- open in a new browser tab/window
+- preserve the existing resource card UI
+
+Prefer:
+- official documentation
+- reputable educational articles
+- established learning resources
+- relevant YouTube tutorial/video links where appropriate
+
+Do not create fake URLs.
+
+==================================================
+5. HANDLE MISSING RESOURCES SAFELY
+==================================================
+
+If no reliable real resource exists for a task:
+- do not generate a fake link
+- do not use example.com
+- either omit the resource section or show that resource as unavailable/non-clickable
+
+The app should never pretend a resource is real when it is not.
+
+==================================================
+6. PRESERVE RESOURCE MAPPING
+==================================================
+
+Resources must continue to resolve by the current stable task/journey mapping.
+
+Do NOT allow:
+- Japanese resources in German journeys
+- German resources in Japanese journeys
+- language resources in Build a Game
+- resource fallback from unrelated tasks
+
+Keep the language-specific integrity fix intact.
+
+==================================================
+7. TEST QUIZZES
+==================================================
+
+Test multiple questions from:
+- Japanese
+- German
+- Build a Game
+
+Verify:
+- correct answers appear in different positions
+- the correct answer is not systematically first
+- selecting the real correct answer is marked Correct
+- selecting an incorrect answer is marked Incorrect
+- answer order does not change after selection
+- task/practice completion still works
+
+==================================================
+8. TEST RESOURCES
+==================================================
+
+Verify:
+- visible resource links open successfully
+- no example.com/lifecraft/mock URLs remain in visible resource data
+- links open in a new tab/window
+- resource title/description matches the task
+- resources do not leak across journeys
+
+==================================================
+9. DO NOT FIX YET
+==================================================
+
+Do not modify in this task:
+- XP/Gems logic
+- demo progress numbers
+- progress reconciliation
+- Settings persistence
+- daily time budget logic
+- UI redesign
+- achievements/streaks/premium features
+
+At the end report:
+- files changed
+- quiz data-model changes
+- how answer shuffling is stabilized
+- number/type of placeholder resources removed
+- tests performed
+- any tasks that still intentionally have no resource

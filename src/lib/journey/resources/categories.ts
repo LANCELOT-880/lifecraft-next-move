@@ -7,41 +7,134 @@ import { R, type ResourcesByKey } from "./types";
  * resource section — never another step's list.
  */
 export const categoryResources: Record<JourneyCategory, ResourcesByKey> = {
-  language: {
-    "learn the basic writing system or alphabet": R("lang-alphabet", [
-      ["video", "Reading a new alphabet", "How to map unfamiliar letters to sounds you already produce.", "https://example.com/lifecraft/mock/video/new-alphabet"],
-      ["practice", "Letter recognition drill", "Five minutes of shuffled letter-to-sound recall.", "https://example.com/lifecraft/mock/practice/letters"],
-    ]),
-    "learn essential vocabulary": R("lang-vocab", [
-      ["documentation", "Beginner frequency list", "The first few hundred words that cover everyday speech.", "https://example.com/lifecraft/mock/docs/frequency-list"],
-    ]),
-    "learn basic greetings": R("lang-greetings", [
-      ["video", "Greetings and introductions", "Short dialogues you can copy word for word.", "https://example.com/lifecraft/mock/video/greetings"],
-    ]),
-    "practice speaking": R("lang-speaking", [
-      ["practice", "Two-minute speaking prompts", "Record yourself answering one prompt a day.", "https://example.com/lifecraft/mock/practice/speaking-prompts"],
-    ]),
-  },
+  language: {},
   programming: {
     "learn variables and data types": R("prog-variables", [
-      ["documentation", "Built-in types reference", "Numbers, strings, booleans and when each is the right choice.", "https://example.com/lifecraft/mock/docs/data-types"],
-      ["practice", "Variable exercises", "Ten tiny programs that store and print values.", "https://example.com/lifecraft/mock/practice/variables"],
+      [
+        "documentation",
+        "MDN JavaScript variables",
+        "Reference and examples for declaring and using JavaScript variables.",
+        "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/Variables",
+      ],
+      [
+        "practice",
+        "MDN JavaScript first steps",
+        "Hands-on scripting exercises covering values, variables, and basic output.",
+        "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting",
+      ],
     ]),
     "learn conditions": R("prog-conditions", [
-      ["video", "if / else, clearly", "Branching logic explained with traced examples.", "https://example.com/lifecraft/mock/video/conditions"],
+      [
+        "documentation",
+        "MDN conditionals",
+        "Learn how if and else statements control program flow.",
+        "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/Conditionals",
+      ],
     ]),
     "learn loops": R("prog-loops", [
-      ["article", "Choosing for vs while", "Counted repetition versus condition-driven repetition.", "https://example.com/lifecraft/mock/article/loops"],
-      ["practice", "Loop katas", "Sum, count and filter drills over small lists.", "https://example.com/lifecraft/mock/practice/loops"],
+      [
+        "documentation",
+        "MDN loops and iteration",
+        "A practical guide to for, while, and other JavaScript iteration patterns.",
+        "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Loops_and_iteration",
+      ],
+      [
+        "practice",
+        "MDN loop exercises",
+        "Use iteration to repeat work over values and collections.",
+        "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/Loops",
+      ],
     ]),
     "learn functions": R("prog-functions", [
-      ["documentation", "Functions and scope", "Parameters, return values and where names live.", "https://example.com/lifecraft/mock/docs/functions"],
+      [
+        "documentation",
+        "MDN JavaScript functions",
+        "Parameters, return values, scope, and reusable functions.",
+        "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions",
+      ],
     ]),
     "build a small project": R("prog-project", [
-      ["article", "Picking a first project", "Small, boring and finishable beats ambitious and abandoned.", "https://example.com/lifecraft/mock/article/first-project"],
+      [
+        "article",
+        "MDN your first website",
+        "A guided small project that combines HTML, CSS, and JavaScript.",
+        "https://developer.mozilla.org/en-US/docs/Learn_web_development/Getting_started/Your_first_website",
+      ],
     ]),
   },
   gamedev: {},
   fitness: {},
   general: {},
+};
+
+/** Language resources are keyed by target language to prevent cross-language leakage. */
+export const languageResourcesByTarget: Record<string, ResourcesByKey> = {
+  german: {
+    "learn the basic writing system or alphabet": R("german-alphabet", [
+      [
+        "practice",
+        "Goethe-Institut German exercises",
+        "Free German practice activities for building reading and language foundations.",
+        "https://www.goethe.de/en/spr/ueb.html",
+      ],
+    ]),
+    "learn essential vocabulary": R("german-vocabulary", [
+      [
+        "documentation",
+        "DW Learn German",
+        "Deutsche Welle's structured German learning material and vocabulary practice.",
+        "https://learngerman.dw.com/en/overview",
+      ],
+    ]),
+    "learn basic greetings": R("german-greetings", [
+      [
+        "practice",
+        "DW German beginner course",
+        "Beginner dialogues and everyday expressions from Deutsche Welle.",
+        "https://learngerman.dw.com/en/nicos-weg/c-36519789",
+      ],
+    ]),
+    "practice speaking": R("german-speaking", [
+      [
+        "practice",
+        "Goethe-Institut speaking practice",
+        "Practice German communication tasks at a beginner-friendly level.",
+        "https://www.goethe.de/en/spr/ueb.html",
+      ],
+    ]),
+  },
+  japanese: {
+    "learn the basic writing system or alphabet": R("japanese-alphabet", [
+      [
+        "article",
+        "Tofugu Hiragana guide",
+        "A detailed guide to learning all 46 hiragana characters.",
+        "https://www.tofugu.com/japanese/learn-hiragana/",
+      ],
+    ]),
+    "learn essential vocabulary": R("japanese-vocabulary", [
+      [
+        "article",
+        "Tofugu Japanese vocabulary guide",
+        "A practical starting point for building useful Japanese vocabulary.",
+        "https://www.tofugu.com/japanese/japanese-vocabulary/",
+      ],
+    ]),
+    "learn basic greetings": R("japanese-greetings", [
+      [
+        "article",
+        "Tofugu basic Japanese phrases",
+        "Useful Japanese greetings and phrases for everyday conversations.",
+        "https://www.tofugu.com/japanese/basic-japanese-phrases/",
+      ],
+    ]),
+    "practice speaking": R("japanese-speaking", [
+      [
+        "practice",
+        "IRODORI Japanese for Life in Japan",
+        "Japan Foundation materials for practical Japanese communication.",
+        "https://www.irodori.jpf.go.jp/en/",
+      ],
+    ]),
+  },
 };

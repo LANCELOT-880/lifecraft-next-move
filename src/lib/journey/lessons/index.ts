@@ -7,7 +7,7 @@ import { languageLessonsByTarget } from "./language";
 import { programmingLessons } from "./programming";
 import type { Lesson, LessonsByTitle } from "./types";
 
-export type { Lesson, LessonExample, PracticeQuestion } from "./types";
+export type { Lesson, LessonExample, PracticeAnswer, PracticeQuestion } from "./types";
 
 const lessonsByCategory: Record<JourneyCategory, LessonsByTitle> = {
   language: {},

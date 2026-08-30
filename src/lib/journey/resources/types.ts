@@ -5,7 +5,6 @@ export interface Resource {
   type: ResourceType;
   title: string;
   description: string;
-  /** Mock URL for now — swap for the real link later, nothing else changes. */
   url: string;
   isPremium?: boolean;
 }

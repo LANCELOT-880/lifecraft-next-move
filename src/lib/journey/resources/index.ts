@@ -1,5 +1,5 @@
 import type { Journey, Task } from "../types";
-import { categoryResources } from "./categories";
+import { categoryResources, languageResourcesByTarget } from "./categories";
 import { demoTaskResources } from "./demoTasks";
 import type { Resource } from "./types";
 
@@ -14,10 +14,17 @@ export type { Resource, ResourceType } from "./types";
  * No match means the step has no resources and the section is hidden.
  */
 export function getResources(task: Task, journey: Journey): Resource[] {
-  const byId = demoTaskResources[task.id];
-  if (byId?.length) return byId;
+  if (journey.isDemo) {
+    const byId = demoTaskResources[task.id];
+    if (byId?.length) return byId;
+  }
 
-  const catalogue = categoryResources[journey.category];
+  const catalogue =
+    journey.category === "language"
+      ? journey.targetLanguage
+        ? languageResourcesByTarget[journey.targetLanguage.toLowerCase()]
+        : undefined
+      : categoryResources[journey.category];
   const byTitle = catalogue?.[task.title.trim().toLowerCase()];
   return byTitle ?? [];
 }

@@ -3,11 +3,16 @@ export interface LessonExample {
   meaning?: string;
 }
 
+export interface PracticeAnswer {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+}
+
 export interface PracticeQuestion {
   id: string;
   question: string;
-  options: string[];
-  answerIndex: number;
+  answers: PracticeAnswer[];
 }
 
 export interface Lesson {
@@ -29,12 +34,18 @@ export function L(
   return {
     learn,
     examples: examples.map(([text, meaning]) => ({ text, meaning })),
-    practice: practice.map(([question, options, answerIndex], index) => ({
-      id: `q${index + 1}`,
-      question,
-      options,
-      answerIndex,
-    })),
+    practice: practice.map(([question, options, answerIndex], index) => {
+      const questionId = `q${index + 1}`;
+      return {
+        id: questionId,
+        question,
+        answers: options.map((text, optionIndex) => ({
+          id: `${questionId}-a${optionIndex + 1}`,
+          text,
+          isCorrect: optionIndex === answerIndex,
+        })),
+      };
+    }),
     exercise,
   };
 }

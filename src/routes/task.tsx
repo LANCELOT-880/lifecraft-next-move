@@ -1,12 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/lifecraft/AppShell";
 import { ResourceList } from "@/components/lifecraft/ResourceList";
 import { RewardsSummary } from "@/components/lifecraft/RewardsSummary";
 import { Button } from "@/components/ui/button";
-import { getLesson } from "@/lib/journey/lessons";
+import { getLesson, type Lesson } from "@/lib/journey/lessons";
 import { getResources } from "@/lib/journey/resources";
 import { awardPracticeCompletion } from "@/lib/journey/rewards";
 import { findTask, getNextMove, journeyStore } from "@/lib/journey/journeyStore";
@@ -41,7 +41,6 @@ function TaskLesson() {
   const navigate = useNavigate();
   const journey = useJourney(journeyId);
   const found = journey ? findTask(journey, taskId) : null;
-  const [answers, setAnswers] = useState<Record<string, number>>({});
 
   if (!journey || !found) {
     const journeyMissing = Boolean(journeyId) && !journey;
@@ -67,14 +66,6 @@ function TaskLesson() {
   const { task, phase } = found;
   const lesson = getLesson(task, journey);
   const resources = getResources(task, journey);
-
-  const answerAll = (next: Record<string, number>) => {
-    if (!lesson) return;
-    const allCorrect = lesson.practice.every((item) => next[item.id] === item.answerIndex);
-    if (!allCorrect) return;
-    const gained = awardPracticeCompletion(task.id, task.title);
-    if (gained.xp > 0) toast.success(`Practice complete — +${gained.xp} XP`);
-  };
 
   const complete = () => {
     const gained = task.completed
@@ -180,65 +171,7 @@ function TaskLesson() {
         </ul>
       </section>
 
-      <section className="surface-panel mt-4 p-5 sm:p-6" aria-labelledby="practice-heading">
-        <h2 id="practice-heading" className="text-eyebrow text-muted-foreground">
-          Check your understanding
-        </h2>
-        <div className="mt-4 space-y-6">
-          {lesson.practice.map((item) => {
-            const selected = answers[item.id];
-            const isCorrect = selected === item.answerIndex;
-            return (
-              <div key={item.id}>
-                <p className="text-sm font-medium">{item.question}</p>
-                <div className="mt-3 grid gap-2">
-                  {item.options.map((option, index) => {
-                    const isPicked = selected === index;
-                    return (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() =>
-                          setAnswers((prev) => {
-                            const next = { ...prev, [item.id]: index };
-                            answerAll(next);
-                            return next;
-                          })
-                        }
-                        aria-pressed={isPicked}
-                        className={`grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors duration-200 ${
-                          isPicked && index === item.answerIndex
-                            ? "border-primary/50 bg-accent-soft text-foreground"
-                            : isPicked
-                              ? "border-destructive/50 text-foreground"
-                              : "border-border text-muted-foreground hover:bg-surface-2/60 hover:text-foreground"
-                        }`}
-                      >
-                        <span className="grid size-5 shrink-0 place-items-center rounded-full border border-border text-[10px]">
-                          {isPicked && index === item.answerIndex ? (
-                            <Check className="size-3 text-primary" aria-hidden />
-                          ) : (
-                            String.fromCharCode(65 + index)
-                          )}
-                        </span>
-                        <span className="min-w-0 break-words">{option}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-                {selected !== undefined ? (
-                  <p
-                    className={`mt-2 text-xs ${isCorrect ? "text-primary" : "text-muted-foreground"}`}
-                    role="status"
-                  >
-                    {isCorrect ? "Correct." : "Not quite. Try again."}
-                  </p>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
-      </section>
+      <PracticeSection key={task.id} lesson={lesson} taskId={task.id} taskTitle={task.title} />
 
       <section className="surface-panel mt-4 p-5 sm:p-6" aria-labelledby="exercise-heading">
         <h2 id="exercise-heading" className="text-eyebrow text-muted-foreground">
@@ -262,5 +195,113 @@ function TaskLesson() {
         </>
       )}
     </AppShell>
+  );
+}
+
+function shuffle<T>(items: T[]): T[] {
+  const shuffled = [...items];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    const current = shuffled[index];
+    const swap = shuffled[swapIndex];
+    if (current === undefined || swap === undefined) continue;
+    shuffled[index] = swap;
+    shuffled[swapIndex] = current;
+  }
+  return shuffled;
+}
+
+function PracticeSection({
+  lesson,
+  taskId,
+  taskTitle,
+}: {
+  lesson: Lesson;
+  taskId: string;
+  taskTitle: string;
+}) {
+  const [questions, setQuestions] = useState(() => lesson.practice);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setQuestions(
+      lesson.practice.map((question) => ({
+        ...question,
+        answers: shuffle(question.answers),
+      })),
+    );
+    setAnswers({});
+  }, [lesson, taskId]);
+
+  const answerAll = (next: Record<string, string>) => {
+    const allCorrect = questions.every((question) =>
+      question.answers.some((answer) => answer.id === next[question.id] && answer.isCorrect),
+    );
+    if (!allCorrect) return;
+    const gained = awardPracticeCompletion(taskId, taskTitle);
+    if (gained.xp > 0) toast.success(`Practice complete — +${gained.xp} XP`);
+  };
+
+  return (
+    <section className="surface-panel mt-4 p-5 sm:p-6" aria-labelledby="practice-heading">
+      <h2 id="practice-heading" className="text-eyebrow text-muted-foreground">
+        Check your understanding
+      </h2>
+      <div className="mt-4 space-y-6">
+        {questions.map((question) => {
+          const selected = answers[question.id];
+          const selectedAnswer = question.answers.find((answer) => answer.id === selected);
+          const isCorrect = selectedAnswer?.isCorrect === true;
+          return (
+            <div key={question.id}>
+              <p className="text-sm font-medium">{question.question}</p>
+              <div className="mt-3 grid gap-2">
+                {question.answers.map((answer, index) => {
+                  const isPicked = selected === answer.id;
+                  return (
+                    <button
+                      key={answer.id}
+                      type="button"
+                      onClick={() =>
+                        setAnswers((previous) => {
+                          const next = { ...previous, [question.id]: answer.id };
+                          answerAll(next);
+                          return next;
+                        })
+                      }
+                      aria-pressed={isPicked}
+                      className={`grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors duration-200 ${
+                        isPicked && answer.isCorrect
+                          ? "border-primary/50 bg-accent-soft text-foreground"
+                          : isPicked
+                            ? "border-destructive/50 text-foreground"
+                            : "border-border text-muted-foreground hover:bg-surface-2/60 hover:text-foreground"
+                      }`}
+                    >
+                      <span className="grid size-5 shrink-0 place-items-center rounded-full border border-border text-[10px]">
+                        {isPicked && answer.isCorrect ? (
+                          <Check className="size-3 text-primary" aria-hidden />
+                        ) : (
+                          String.fromCharCode(65 + index)
+                        )}
+                      </span>
+                      <span className="min-w-0 break-words">{answer.text}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {selected !== undefined ? (
+                <p
+                  className={`mt-2 text-xs ${isCorrect ? "text-primary" : "text-muted-foreground"}`}
+                  role="status"
+                >
+                  {isCorrect ? "Correct." : "Not quite. Try again."}
+                </p>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }

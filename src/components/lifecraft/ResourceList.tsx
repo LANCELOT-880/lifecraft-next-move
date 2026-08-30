@@ -22,7 +22,9 @@ export function ResourceList({ resources }: { resources: Resource[] }) {
                 <span className="text-[10px] uppercase tracking-[0.16em] text-primary">
                   {resourceTypeLabels[resource.type]}
                 </span>
-                <span className="mt-1 block break-words text-sm text-foreground">{resource.title}</span>
+                <span className="mt-1 block break-words text-sm text-foreground">
+                  {resource.title}
+                </span>
                 <span className="mt-0.5 block break-words text-xs text-muted-foreground">
                   {resource.description}
                 </span>

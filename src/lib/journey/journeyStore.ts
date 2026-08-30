@@ -1,4 +1,4 @@
-import { analyzeGoal, cleanGoalTitle } from "./analyzer";
+import { analyzeGoal, cleanGoalTitle, detectTargetLanguage } from "./analyzer";
 import { demoJourneys } from "./demo";
 import { awardForCompletedTask } from "./rewards";
 import { journeyTemplates } from "./templates";
@@ -30,10 +30,7 @@ export function calcProgress(journey: Journey): number {
   return Math.round((tasks.filter((task) => task.completed).length / tasks.length) * 100);
 }
 
-export function findTask(
-  journey: Journey,
-  taskId: string,
-): { task: Task; phase: Phase } | null {
+export function findTask(journey: Journey, taskId: string): { task: Task; phase: Phase } | null {
   for (const phase of journey.phases) {
     const task = phase.tasks.find((item) => item.id === taskId);
     if (task) return { task, phase };
@@ -70,12 +67,14 @@ export function buildJourney(input: GoalInput): Journey {
   const template = journeyTemplates[category];
   const id = uid("journey");
   const title = cleanGoalTitle(input.goal);
+  const targetLanguage = category === "language" ? detectTargetLanguage(input.goal) : undefined;
 
   return {
     id,
     title,
     description: input.why.trim() || `${categoryLabels[category]} journey shaped around your goal.`,
     category,
+    ...(targetLanguage ? { targetLanguage } : {}),
     why: input.why.trim(),
     progress: 0,
     dailyTime: input.dailyTime,
@@ -109,7 +108,15 @@ function read(): Journey[] {
   try {
     const raw = window.localStorage.getItem(JOURNEYS_KEY);
     const saved = raw ? (JSON.parse(raw) as Journey[]) : [];
-    const list = Array.isArray(saved) ? saved.filter((j) => j && Array.isArray(j.phases)) : [];
+    const list = Array.isArray(saved)
+      ? saved
+          .filter((j) => j && Array.isArray(j.phases))
+          .map((journey) => {
+            if (journey.category !== "language" || journey.targetLanguage) return journey;
+            const inferred = detectTargetLanguage(`${journey.title} ${journey.why}`);
+            return inferred ? { ...journey, targetLanguage: inferred } : journey;
+          })
+      : [];
     const missingDemos = demoJourneys.filter((demo) => !list.some((j) => j.id === demo.id));
     return [...missingDemos, ...list];
   } catch {

@@ -35,6 +35,7 @@ export const Route = createFileRoute("/task")({
   component: TaskLesson,
 });
 
+// prettier-ignore
 function TaskLesson() {
   const { journey: journeyId, task: taskId } = Route.useSearch();
   const navigate = useNavigate();
@@ -43,14 +44,21 @@ function TaskLesson() {
   const [answers, setAnswers] = useState<Record<string, number>>({});
 
   if (!journey || !found) {
+    const journeyMissing = Boolean(journeyId) && !journey;
     return (
       <AppShell>
-        <h1 className="text-2xl font-semibold sm:text-3xl">Task not found</h1>
+        <h1 className="text-2xl font-semibold sm:text-3xl">
+          {journeyMissing ? "Journey not found" : "Task not found"}
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          This task is no longer part of your journeys. Pick your next move to keep going.
+          {journeyMissing
+            ? "That journey does not exist. Choose one of your saved journeys to keep going."
+            : "This task is no longer part of the selected journey. Pick your next move to keep going."}
         </p>
         <Button asChild className="mt-6 w-full sm:w-auto">
-          <Link to="/next">Go to next move</Link>
+          <Link to={journeyMissing ? "/journeys" : "/next"}>
+            {journeyMissing ? "View journeys" : "Go to next move"}
+          </Link>
         </Button>
       </AppShell>
     );

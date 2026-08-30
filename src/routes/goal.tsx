@@ -33,12 +33,21 @@ function GoalDetails() {
   const journey = useJourney(id);
 
   if (!journey) {
+    const journeyMissing = Boolean(id);
     return (
       <AppShell>
-        <h1 className="text-2xl font-semibold sm:text-3xl">No journey yet</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Create a goal to start crafting.</p>
+        <h1 className="text-2xl font-semibold sm:text-3xl">
+          {journeyMissing ? "Journey not found" : "No journey yet"}
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {journeyMissing
+            ? "That journey does not exist. Choose one of your saved journeys."
+            : "Create a goal to start crafting."}
+        </p>
         <Button asChild className="mt-6">
-          <Link to="/create">Create a goal</Link>
+          <Link to={journeyMissing ? "/journeys" : "/create"}>
+            {journeyMissing ? "View journeys" : "Create a goal"}
+          </Link>
         </Button>
       </AppShell>
     );
@@ -88,7 +97,7 @@ function GoalDetails() {
             <MilestoneSection
               key={phase.id}
               phase={phase}
-            journeyId={journey.id}
+              journeyId={journey.id}
               onToggleTask={(task) => journeyStore.toggleTask(journey.id, task.id)}
             />
           ))}

@@ -35,14 +35,21 @@ function Roadmap() {
   const journey = useJourney(id);
 
   if (!journey) {
+    const journeyMissing = Boolean(id);
     return (
       <AppShell>
-        <h1 className="text-2xl font-semibold sm:text-3xl">No journey yet</h1>
+        <h1 className="text-2xl font-semibold sm:text-3xl">
+          {journeyMissing ? "Journey not found" : "No journey yet"}
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Describe a goal and LIFECRAFT will shape the roadmap around it.
+          {journeyMissing
+            ? "That journey does not exist. Choose one of your saved journeys."
+            : "Describe a goal and LIFECRAFT will shape the roadmap around it."}
         </p>
         <Button asChild className="mt-6">
-          <Link to="/create">Create a goal</Link>
+          <Link to={journeyMissing ? "/journeys" : "/create"}>
+            {journeyMissing ? "View journeys" : "Create a goal"}
+          </Link>
         </Button>
       </AppShell>
     );
@@ -53,9 +60,7 @@ function Roadmap() {
 
   return (
     <AppShell>
-      <p className="text-eyebrow text-primary">
-        {categoryLabels[journey.category]} journey
-      </p>
+      <p className="text-eyebrow text-primary">{categoryLabels[journey.category]} journey</p>
       <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:items-end sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-2xl font-semibold sm:text-3xl">{journey.title}</h1>

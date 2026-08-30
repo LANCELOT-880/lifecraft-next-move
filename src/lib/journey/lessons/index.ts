@@ -3,14 +3,14 @@ import { demoTaskLessons } from "./demoTasks";
 import { fitnessLessons } from "./fitness";
 import { gamedevLessons } from "./gamedev";
 import { generalLessons } from "./general";
-import { languageLessons } from "./language";
+import { languageLessonsByTarget } from "./language";
 import { programmingLessons } from "./programming";
 import type { Lesson, LessonsByTitle } from "./types";
 
 export type { Lesson, LessonExample, PracticeQuestion } from "./types";
 
 const lessonsByCategory: Record<JourneyCategory, LessonsByTitle> = {
-  language: languageLessons,
+  language: {},
   gamedev: gamedevLessons,
   programming: programmingLessons,
   fitness: fitnessLessons,
@@ -27,10 +27,17 @@ const lessonsByCategory: Record<JourneyCategory, LessonsByTitle> = {
  * explicit "unavailable" state rather than another task's content.
  */
 export function getLesson(task: Task, journey: Journey): Lesson | null {
-  const byId = demoTaskLessons[task.id];
-  if (byId) return byId;
+  if (journey.isDemo) {
+    const byId = demoTaskLessons[task.id];
+    if (byId) return byId;
+  }
 
-  const catalogue = lessonsByCategory[journey.category];
+  const catalogue =
+    journey.category === "language"
+      ? journey.targetLanguage
+        ? languageLessonsByTarget[journey.targetLanguage.toLowerCase()]
+        : undefined
+      : lessonsByCategory[journey.category];
   const byTitle = catalogue?.[task.title.trim().toLowerCase()];
   return byTitle ?? null;
 }

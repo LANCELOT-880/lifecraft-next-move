@@ -1,0 +1,190 @@
+LIFECRAFT — LANGUAGE-SPECIFIC JOURNEY FIX
+
+Use the previous code audit as the source of truth.
+
+IMPORTANT:
+- Do NOT redesign the UI.
+- Do NOT change typography, colors, navigation, cards, spacing, or layout.
+- Do NOT add backend services, Supabase, authentication, AI APIs, payments, or subscriptions.
+- Keep the existing React + TypeScript + localStorage architecture.
+- Preserve all non-language journeys and existing working features.
+
+CURRENT ROOT CAUSE:
+
+Journey currently stores only:
+
+category: "language"
+
+It does not preserve which language the user actually requested.
+
+The shared language lesson catalogue therefore allows German, Japanese, Spanish, French, etc. journeys to resolve generic/shared language content.
+
+This caused Japanese examples to appear inside German journeys.
+
+==================================================
+1. ADD TARGET LANGUAGE TO JOURNEY DATA
+==================================================
+
+Extend the Journey type with a safe optional field such as:
+
+targetLanguage?: string
+
+Examples:
+
+"I want to learn German"
+→ category = "language"
+→ targetLanguage = "german"
+
+"I want to learn Japanese"
+→ category = "language"
+→ targetLanguage = "japanese"
+
+"I want to learn Spanish"
+→ category = "language"
+→ targetLanguage = "spanish"
+
+At minimum detect:
+- japanese
+- german
+- spanish
+- french
+- english
+
+Non-language journeys should not require targetLanguage.
+
+==================================================
+2. UPDATE GOAL ANALYSIS
+==================================================
+
+Update the existing local goal analyzer so language goals preserve the actual requested language.
+
+Do not change the visible Create Goal UI unless necessary.
+
+Do not replace the current analyzer with AI or external services.
+
+==================================================
+3. MAKE LANGUAGE LESSON LOOKUP LANGUAGE-SPECIFIC
+==================================================
+
+Refactor the lesson lookup so it resolves language content using:
+
+journey
+→ category
+→ targetLanguage
+→ task ID/title
+→ lesson content
+
+Rules:
+- German journey → German content only
+- Japanese journey → Japanese content only
+- Spanish journey → Spanish content only
+- French journey → French content only
+- English journey → English content only
+
+Never borrow Japanese content for German or vice versa.
+
+If content does not exist for a language/task combination, return null and show the existing:
+
+"Lesson content unavailable"
+
+state.
+
+Incorrect content is worse than unavailable content.
+
+==================================================
+4. PRESERVE EXISTING DEMO JOURNEYS
+==================================================
+
+Keep the existing demo Japanese journey working.
+
+If needed, add:
+
+targetLanguage: "japanese"
+
+to the existing demo data.
+
+Do not change its existing task IDs.
+
+Keep the existing Build a Game demo journey unchanged.
+
+==================================================
+5. FIX ROUTE SAFETY
+==================================================
+
+The audit found that an invalid explicit journey ID can silently fall back to the active/first journey.
+
+Fix this.
+
+If an explicit journey ID is requested and does not exist:
+- do NOT silently load another journey
+- show a clear not-found state
+
+If a task ID is invalid for the selected journey:
+- do NOT load another task
+- do NOT borrow another task's content
+- show task-not-found / lesson-unavailable safely
+
+Normal valid navigation must remain unchanged.
+
+==================================================
+6. BACKWARD-COMPATIBLE LOCALSTORAGE HANDLING
+==================================================
+
+Existing saved language journeys may not contain targetLanguage.
+
+Do not wipe localStorage.
+
+For old persisted language journeys:
+- infer targetLanguage from the stored goal/title only when clearly identifiable
+- otherwise leave it undefined
+- never arbitrarily assign Japanese/German
+
+==================================================
+7. TEST
+==================================================
+
+Verify:
+
+A. Create "I want to learn German"
+Expected:
+- category = language
+- targetLanguage = german
+- no Japanese examples in at least 3 opened tasks
+
+B. Create "I want to learn Japanese"
+Expected:
+- category = language
+- targetLanguage = japanese
+- no German content in at least 3 opened tasks
+
+C. Create "I want to learn Spanish"
+If detailed content is unavailable:
+- show "Lesson content unavailable"
+- do not borrow German/Japanese content
+
+D. Existing demo Japanese journey still works.
+
+E. Build a Game still works.
+
+F. Invalid journey ID shows not-found.
+
+G. Invalid task ID shows unavailable/not-found.
+
+==================================================
+8. DO NOT FIX YET
+==================================================
+
+Do not modify in this task:
+- quiz answer order
+- resource URLs
+- XP/Gems logic
+- demo progress values
+- settings persistence
+- UI redesign
+
+At the end report:
+- files changed
+- data model changes
+- backward-compatibility handling
+- tests performed
+- remaining language-content gaps

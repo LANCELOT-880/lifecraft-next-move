@@ -15,6 +15,7 @@ export const demoJourneys: Journey[] = [
     title: "Learn Japanese",
     description: "Build conversational Japanese skills.",
     category: "language",
+    targetLanguage: "japanese",
     why: "I want to travel through Japan without a phrasebook.",
     progress: 68,
     dailyTime: "30 min",

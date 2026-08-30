@@ -10,7 +10,7 @@ export function useJourneys(): Journey[] {
   );
 }
 
-/** Resolves a journey by id, falling back to the most recently active one. */
+/** Resolves an explicit id exactly; only an omitted id uses the active fallback. */
 export function useJourney(id?: string | undefined): Journey | undefined {
   const journeys = useJourneys();
   const activeId = useSyncExternalStore(
@@ -19,10 +19,7 @@ export function useJourney(id?: string | undefined): Journey | undefined {
     () => null,
   );
 
-  if (id) {
-    const match = journeys.find((journey) => journey.id === id);
-    if (match) return match;
-  }
+  if (id) return journeys.find((journey) => journey.id === id);
   if (activeId) {
     const active = journeys.find((journey) => journey.id === activeId);
     if (active) return active;

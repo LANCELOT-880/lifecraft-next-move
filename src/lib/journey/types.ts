@@ -1,4 +1,5 @@
 export type JourneyCategory = "language" | "gamedev" | "programming" | "fitness" | "general";
+export type TargetLanguage = "japanese" | "german" | "spanish" | "french" | "english" | string;
 
 export type Difficulty = "Easy" | "Medium" | "Hard";
 export type Impact = "Low impact" | "Medium impact" | "High impact";
@@ -30,6 +31,8 @@ export interface Journey {
   title: string;
   description: string;
   category: JourneyCategory;
+  /** Present for language journeys when the requested language is identifiable. */
+  targetLanguage?: TargetLanguage;
   why: string;
   progress: number;
   dailyTime: string;

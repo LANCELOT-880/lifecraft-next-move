@@ -1,0 +1,210 @@
+LIFECRAFT UI/UX PHASE 1 — POLISH THE DASHBOARD AND GLOBAL PROGRESSION
+
+The core LIFECRAFT functionality has now been verified and is stable.
+
+This task begins the UI/UX improvement phase.
+
+DESIGN DIRECTION:
+
+Take inspiration from modern gamified learning products such as Codédex in terms of:
+- clear learning progression
+- visible XP and level status
+- rewarding completion
+- playful but professional presentation
+- strong visual hierarchy
+
+DO NOT copy Codédex branding, artwork, layouts, colors, text, icons, or exact components.
+
+LIFECRAFT must retain its own identity.
+
+The current dark LIFECRAFT design with blue/indigo accents should remain the foundation.
+
+==================================================
+CRITICAL RULES
+==================================================
+
+DO NOT modify:
+
+- journey generation logic
+- targetLanguage logic
+- lessons
+- quiz logic
+- quiz answer shuffling
+- resource URLs
+- resource mapping
+- XP/Gems reward calculations
+- task completion logic
+- progress calculations
+- localStorage data
+- routes
+- existing functionality
+
+This task is primarily UI/UX.
+
+Do NOT add:
+- backend
+- authentication
+- Supabase
+- AI APIs
+- payments
+- subscriptions
+
+==================================================
+1. IMPROVE DASHBOARD INFORMATION HIERARCHY
+==================================================
+
+Keep the existing Dashboard functionality but make it feel more like a polished learning/productivity application.
+
+The Dashboard should clearly prioritize:
+
+1. Greeting / user context
+2. Current level + XP progress
+3. Gem balance
+4. Current Next Move
+5. Active journeys
+6. Progress overview
+
+Do not overcrowd the page.
+
+==================================================
+2. CREATE A COMPACT PLAYER PROGRESS AREA
+==================================================
+
+Near the top of the Dashboard, add a compact progression section displaying:
+
+Level
+XP progress
+Current XP / XP required for next level
+Gem balance
+
+Example conceptually:
+
+Level 1
+████████░░ 350 / 500 XP
+
+💎 45 Gems
+
+Use the EXISTING reward data.
+
+Do not create fake values.
+
+Do not change reward calculations.
+
+==================================================
+3. IMPROVE THE NEXT MOVE CARD
+==================================================
+
+Make the existing Next Move card visually more important.
+
+It should clearly show:
+
+- task title
+- journey
+- estimated time
+- difficulty
+- impact
+- primary Start button
+
+Use subtle accent/glow/border treatment consistent with the existing LIFECRAFT dark design.
+
+Do not make it excessively flashy.
+
+==================================================
+4. IMPROVE ACTIVE JOURNEY CARDS
+==================================================
+
+For each active journey show clearly:
+
+- journey title
+- short description
+- completed tasks / total tasks
+- percentage
+- progress bar
+- daily time
+- target date if available
+
+Make progress easy to understand at a glance.
+
+Keep cards clean and compact.
+
+==================================================
+5. ADD A SMALL CONTINUE-LEARNING FEEL
+==================================================
+
+The dashboard should communicate:
+
+"You know exactly what to do next."
+
+Use visual hierarchy rather than adding large amounts of text.
+
+The Next Move should remain the central action.
+
+==================================================
+6. DESKTOP + MOBILE
+==================================================
+
+Preserve the current responsive behavior.
+
+Desktop:
+- use available width intelligently
+- avoid unnecessarily narrow cards
+- allow progression information to sit naturally beside or above dashboard content
+
+Mobile:
+- maintain one-column readability
+- keep buttons touch-friendly
+- prevent horizontal scrolling
+- keep bottom navigation accessible
+
+==================================================
+7. MICRO-INTERACTIONS
+==================================================
+
+Add only lightweight CSS/UI interactions where appropriate:
+
+- subtle button hover
+- card hover on desktop
+- smooth progress bar transitions
+- subtle completion/progression transitions
+
+Do NOT add large animation libraries.
+
+Do NOT add distracting animations.
+
+==================================================
+8. PRESERVE LIFECRAFT IDENTITY
+==================================================
+
+Keep:
+
+- dark background
+- existing blue/indigo accent family
+- LIFECRAFT wordmark
+- clean typography
+- rounded card system
+- bottom navigation
+
+The result should feel like an evolution of the existing app, not a completely different product.
+
+==================================================
+9. TEST
+==================================================
+
+Verify:
+
+- Dashboard still loads
+- XP shown matches rewardStore
+- Gems shown match rewardStore
+- Progress percentages remain correct
+- Next Move Start works
+- journey cards navigate correctly
+- mobile layout works
+- desktop layout works
+- no functionality changed
+- no console runtime errors introduced
+
+At the end report:
+- components/files changed
+- UI improvements made
+- functionality explicitly preserved
+- responsive tests performed

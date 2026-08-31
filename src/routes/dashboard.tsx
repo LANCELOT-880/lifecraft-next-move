@@ -36,27 +36,35 @@ function Dashboard() {
     <AppShell>
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <h1 className="text-2xl font-semibold sm:text-3xl">Good evening, {user.name}.</h1>
-          <p className="mt-2 text-sm text-muted-foreground">What are you building?</p>
+          <p className="text-eyebrow text-primary">Your dashboard</p>
+          <h1 className="mt-3 text-2xl font-semibold sm:text-3xl">Good evening, {user.name}.</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            A clear next step for everything you’re building.
+          </p>
         </div>
         <Button asChild variant="secondary" className="shrink-0">
           <Link to="/create">
-            <Plus className="size-4" aria-hidden /> Create New Goal
+            <Plus className="size-4" aria-hidden /> New goal
           </Link>
         </Button>
       </header>
 
-      <div className="mt-8">
-        <NextMoveCard move={nextMove} />
-      </div>
+      <RewardsSummary className="mt-7" />
 
-      <RewardsSummary className="mt-4" />
+      <div className="mt-5">
+        <NextMoveCard move={nextMove} variant="hero" />
+      </div>
 
       <section className="mt-12" aria-labelledby="journeys-heading">
         <div className="flex items-baseline justify-between gap-4">
-          <h2 id="journeys-heading" className="text-eyebrow text-muted-foreground">
-            Active journeys
-          </h2>
+          <div>
+            <h2 id="journeys-heading" className="text-eyebrow text-muted-foreground">
+              Active journeys
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Keep your momentum across every goal.
+            </p>
+          </div>
           <Link to="/journeys" className="text-xs text-muted-foreground hover:text-foreground">
             View all
           </Link>

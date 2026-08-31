@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { getLesson, type Lesson } from "@/lib/journey/lessons";
 import { getResources } from "@/lib/journey/resources";
 import { awardPracticeCompletion } from "@/lib/journey/rewards";
-import { findTask, getNextMove, journeyStore } from "@/lib/journey/journeyStore";
+import { findTask, journeyStore } from "@/lib/journey/journeyStore";
 import { useJourney } from "@/lib/journey/useJourneys";
 
 export const Route = createFileRoute("/task")({
@@ -68,21 +68,16 @@ function TaskLesson() {
   const resources = getResources(task, journey);
 
   const complete = () => {
-    const gained = task.completed
-      ? { xp: 0, gems: 0 }
-      : journeyStore.toggleTask(journey.id, task.id);
-    const remaining = getNextMove({
-      ...journey,
-      phases: journey.phases.map((p) => ({
-        ...p,
-        tasks: p.tasks.map((item) => (item.id === task.id ? { ...item, completed: true } : item)),
-      })),
-    });
-    toast.success("Task completed.", {
-      description:
-        (gained.xp > 0 || gained.gems > 0
-          ? `+${gained.xp} XP · +${gained.gems} Gems. `
-          : "Already rewarded. ") + (remaining ? "Your next move is ready." : "Every task in this journey is done."),
+    const result = journeyStore.completeTask(journey.id, task.id);
+    const rewardText =
+      result.xp > 0 || result.gems > 0
+        ? `+${result.xp} XP · +${result.gems} Gems.`
+        : "No new rewards were granted.";
+    const completionText = result.journeyCompleted
+      ? "Every task in this journey is done."
+      : "Your next move is ready.";
+    toast.success(result.taskCompleted ? "Task completed." : "Task could not be completed.", {
+      description: `${rewardText} ${completionText}`,
     });
     navigate({ to: "/next" });
   };

@@ -1,0 +1,246 @@
+LIFECRAFT FIX 3 — PROGRESS + XP/GEMS RECONCILIATION
+
+Use the previous code audit and the successful language/quiz/resource fixes as the source of truth.
+
+IMPORTANT:
+- Do NOT redesign the UI.
+- Do NOT modify language-specific lesson mapping.
+- Do NOT modify quiz shuffling.
+- Do NOT modify resource URLs.
+- Do NOT add backend services, authentication, Supabase, AI APIs, payments, or subscriptions.
+- Keep the existing React + TypeScript + localStorage architecture.
+
+CURRENT CONFIRMED PROBLEMS:
+
+1. Stored journey progress can disagree with actual completed tasks.
+
+Examples from the audit:
+- demo-japanese.progress = 68, but 4/9 tasks are complete (~44%)
+- demo-game.progress = 34, but 1/7 tasks are complete (~14%)
+
+2. XP/Gems and journey completion state can diverge because journey and reward data are stored separately.
+
+3. Pre-completed demo tasks have completion state but may not have matching reward records.
+
+4. Reopening/uncompleting a task does not remove previously awarded rewards.
+
+5. Some completion entry points ignore the actual reward result.
+
+==================================================
+1. MAKE PROGRESS DERIVED FROM TASK STATE
+==================================================
+
+Progress must no longer rely on stale manually-authored percentages.
+
+Use completed tasks / total tasks as the source of truth.
+
+For every journey:
+
+progress =
+round(completedTasks / totalTasks * 100)
+
+Ensure this is used consistently in:
+- Dashboard
+- My Journeys
+- Goal/Journey detail
+- Roadmap
+- any progress bars
+- phase summaries
+
+For demo journeys, either:
+- remove stale hardcoded progress values
+or
+- normalize them at load time from task completion state.
+
+Do not wipe user journeys.
+
+==================================================
+2. NORMALIZE STORED JOURNEYS SAFELY
+==================================================
+
+When journeys are loaded from localStorage:
+
+- recalculate progress from task state
+- preserve task completion state
+- preserve user-entered metadata
+- preserve targetLanguage
+- do not overwrite valid user journeys
+
+Persist the corrected progress when appropriate.
+
+Malformed journey data should fail safely rather than crash calculations.
+
+==================================================
+3. DEFINE A CLEAR REWARD POLICY
+==================================================
+
+Use one consistent policy:
+
+Task completion:
+- awards task XP/Gems once
+
+Practice completion:
+- awards practice XP once if applicable
+
+Phase completion:
+- awards phase rewards once when all phase tasks become complete
+
+Journey completion:
+- awards journey rewards once when all journey tasks are complete
+
+Use stable idempotent keys so refreshing/reopening cannot duplicate rewards.
+
+==================================================
+4. HANDLE PRE-COMPLETED DEMO TASKS
+==================================================
+
+Do NOT automatically grant large retroactive rewards simply because demo data starts partly completed.
+
+Use one clear approach:
+
+Preferred:
+- treat seeded demo completion state as historical/demo progress
+- do not backfill XP/Gems for those already-completed tasks
+- only future newly completed tasks earn rewards
+
+However, the UI must NOT falsely say “Already rewarded” unless a reward record actually exists.
+
+Use wording/state that accurately reflects whether a reward was previously issued.
+
+==================================================
+5. TASK UNCOMPLETION POLICY
+==================================================
+
+Do NOT subtract previously awarded XP/Gems when a completed task is reopened/uncompleted.
+
+Rewards represent earned history.
+
+But:
+- progress must decrease correctly
+- task state must update
+- re-completing the same task must NOT award XP/Gems again because the reward key already exists
+
+==================================================
+6. UNIFY ALL COMPLETION ENTRY POINTS
+==================================================
+
+Completion currently happens from:
+- Goal detail
+- Roadmap
+- Next Move
+- Task/Lesson screen
+
+All entry points must call the same task completion/reward logic.
+
+Avoid duplicate implementations.
+
+Every completion entry point should receive a consistent result including:
+- task completion state
+- XP awarded
+- Gems awarded
+- phase completion result
+- journey completion result
+
+Do not award differently depending on which page completed the task.
+
+==================================================
+7. MAKE REWARD FEEDBACK ACCURATE
+==================================================
+
+Where reward feedback/toasts are already shown:
+
+- display the real XP/Gems returned by the reward system
+- do not hardcode a reward message
+- do not say “already rewarded” unless the reward record exists
+- if no new reward was granted because it was earned previously, say so accurately or show neutral completion feedback
+
+Do not redesign the UI.
+
+==================================================
+8. LOCALSTORAGE SAFETY
+==================================================
+
+Keep existing keys unless a versioned migration is clearly necessary:
+
+- lifecraft.journeys.v1
+- lifecraft.activeJourney.v1
+- lifecraft.rewards.v1
+
+Do not wipe existing user data.
+
+If migration is needed:
+- perform backward-compatible normalization
+- preserve journeys/reward history
+
+==================================================
+9. TEST CASES
+==================================================
+
+Test:
+
+A. Japanese demo
+- 4/9 completed should display approximately 44%, not 68%
+
+B. Build a Game demo
+- 1/7 completed should display approximately 14%, not 34%
+
+C. Complete one new task
+Expected:
+- task becomes complete
+- progress updates
+- XP increases once
+- Gems increase once
+
+D. Refresh
+Expected:
+- task remains complete
+- progress remains correct
+- XP/Gems remain
+
+E. Reopen the completed task
+Expected:
+- progress decreases
+- XP/Gems do NOT decrease
+
+F. Complete it again
+Expected:
+- progress increases
+- XP/Gems do NOT duplicate
+
+G. Complete a phase
+Expected:
+- phase reward is awarded once
+
+H. Complete an entire journey
+Expected:
+- journey reward is awarded once
+
+I. Complete a task from each supported entry point:
+- Goal detail
+- Roadmap
+- Next Move
+- Task page
+
+Expected:
+same reward behavior everywhere.
+
+==================================================
+10. DO NOT FIX YET
+==================================================
+
+Do not modify:
+- Settings persistence
+- daily time budget behavior
+- UI redesign
+- achievements
+- streaks
+- premium UI
+- AI features
+
+At the end report:
+- files changed
+- progress-normalization logic
+- reward policy used
+- demo-data handling
+- duplicate-reward prevention
+- tests performed

@@ -1,6 +1,6 @@
 import { analyzeGoal, cleanGoalTitle, detectTargetLanguage } from "./analyzer";
 import { demoJourneys } from "./demo";
-import { awardForCompletedTask } from "./rewards";
+import { awardForCompletedTask, type TaskCompletionResult } from "./rewards";
 import { journeyTemplates } from "./templates";
 import {
   categoryLabels,
@@ -17,7 +17,12 @@ const ACTIVE_KEY = "lifecraft.activeJourney.v1";
 /* ---------- pure helpers ---------- */
 
 export function allTasks(journey: Journey): Task[] {
-  return journey.phases.flatMap((phase) => phase.tasks);
+  if (!journey || !Array.isArray(journey.phases)) return [];
+  return journey.phases.flatMap((phase) =>
+    phase && Array.isArray(phase.tasks)
+      ? phase.tasks.filter((task): task is Task => Boolean(task))
+      : [],
+  );
 }
 
 export function completedCount(journey: Journey): number {
@@ -30,8 +35,82 @@ export function calcProgress(journey: Journey): number {
   return Math.round((tasks.filter((task) => task.completed).length / tasks.length) * 100);
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object";
+}
+
+function normalizeTask(value: unknown): Task | null {
+  const id = isRecord(value) ? value["id"] : undefined;
+  const title = isRecord(value) ? value["title"] : undefined;
+  if (!isRecord(value) || typeof id !== "string" || typeof title !== "string") return null;
+
+  return {
+    ...value,
+    id,
+    title,
+    completed: typeof value["completed"] === "boolean" ? value["completed"] : false,
+    estimatedMinutes: typeof value["estimatedMinutes"] === "number" ? value["estimatedMinutes"] : 0,
+    difficulty:
+      value["difficulty"] === "Easy" || value["difficulty"] === "Hard"
+        ? value["difficulty"]
+        : "Medium",
+    impact:
+      value["impact"] === "Low impact" || value["impact"] === "High impact"
+        ? value["impact"]
+        : "Medium impact",
+  } as Task;
+}
+
+function normalizePhase(value: unknown, index: number): Phase | null {
+  const id = isRecord(value) ? value["id"] : undefined;
+  const title = isRecord(value) ? value["title"] : undefined;
+  const tasks = isRecord(value) ? value["tasks"] : undefined;
+  if (
+    !isRecord(value) ||
+    typeof id !== "string" ||
+    typeof title !== "string" ||
+    !Array.isArray(tasks)
+  ) {
+    return null;
+  }
+
+  return {
+    ...value,
+    id,
+    title,
+    order: typeof value["order"] === "number" ? value["order"] : index + 1,
+    tasks: tasks.map(normalizeTask).filter((task): task is Task => task !== null),
+  } as Phase;
+}
+
+export function normalizeJourney(value: unknown): Journey | null {
+  const id = isRecord(value) ? value["id"] : undefined;
+  const title = isRecord(value) ? value["title"] : undefined;
+  const phasesValue = isRecord(value) ? value["phases"] : undefined;
+  if (
+    !isRecord(value) ||
+    typeof id !== "string" ||
+    typeof title !== "string" ||
+    !Array.isArray(phasesValue)
+  ) {
+    return null;
+  }
+
+  const phases = phasesValue
+    .map((phase, index) => normalizePhase(phase, index))
+    .filter((phase): phase is Phase => phase !== null);
+  const journey = { ...value, phases, progress: 0 } as Journey;
+  return { ...journey, progress: calcProgress(journey) };
+}
+
+const DEMO_JOURNEYS = demoJourneys
+  .map((journey) => normalizeJourney(journey))
+  .filter((journey): journey is Journey => journey !== null);
+
 export function findTask(journey: Journey, taskId: string): { task: Task; phase: Phase } | null {
+  if (!journey || !Array.isArray(journey.phases)) return null;
   for (const phase of journey.phases) {
+    if (!phase || !Array.isArray(phase.tasks)) continue;
     const task = phase.tasks.find((item) => item.id === taskId);
     if (task) return { task, phase };
   }
@@ -39,7 +118,9 @@ export function findTask(journey: Journey, taskId: string): { task: Task; phase:
 }
 
 export function getNextMove(journey: Journey): NextMove | null {
+  if (!journey || !Array.isArray(journey.phases)) return null;
   for (const phase of journey.phases) {
+    if (!phase || !Array.isArray(phase.tasks)) continue;
     const task = phase.tasks.find((item) => !item.completed);
     if (task) {
       return {
@@ -104,23 +185,27 @@ function isBrowser(): boolean {
 }
 
 function read(): Journey[] {
-  if (!isBrowser()) return demoJourneys;
+  if (!isBrowser()) return DEMO_JOURNEYS;
   try {
     const raw = window.localStorage.getItem(JOURNEYS_KEY);
-    const saved = raw ? (JSON.parse(raw) as Journey[]) : [];
-    const list = Array.isArray(saved)
-      ? saved
-          .filter((j) => j && Array.isArray(j.phases))
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    const saved = Array.isArray(parsed)
+      ? parsed
+          .map((journey) => normalizeJourney(journey))
+          .filter((journey): journey is Journey => journey !== null)
           .map((journey) => {
             if (journey.category !== "language" || journey.targetLanguage) return journey;
             const inferred = detectTargetLanguage(`${journey.title} ${journey.why}`);
             return inferred ? { ...journey, targetLanguage: inferred } : journey;
           })
       : [];
-    const missingDemos = demoJourneys.filter((demo) => !list.some((j) => j.id === demo.id));
-    return [...missingDemos, ...list];
+    if (raw && Array.isArray(parsed) && JSON.stringify(parsed) !== JSON.stringify(saved)) {
+      write(saved);
+    }
+    const missingDemos = DEMO_JOURNEYS.filter((demo) => !saved.some((j) => j.id === demo.id));
+    return [...missingDemos, ...saved];
   } catch {
-    return demoJourneys;
+    return DEMO_JOURNEYS;
   }
 }
 
@@ -140,6 +225,76 @@ function emit() {
   listeners.forEach((listener) => listener());
 }
 
+function completionResult(
+  journey: Journey,
+  taskId: string,
+  xp = 0,
+  gems = 0,
+  phaseRewarded = false,
+  journeyRewarded = false,
+): TaskCompletionResult {
+  const found = findTask(journey, taskId);
+  const phaseCompleted = Boolean(
+    found && found.phase.tasks.length > 0 && found.phase.tasks.every((task) => task.completed),
+  );
+  const journeyCompleted =
+    journey.phases.length > 0 &&
+    journey.phases.every(
+      (phase) => phase.tasks.length > 0 && phase.tasks.every((task) => task.completed),
+    );
+
+  return {
+    taskCompleted: found?.task.completed ?? false,
+    xp,
+    gems,
+    phaseCompleted,
+    phaseRewarded,
+    journeyCompleted,
+    journeyRewarded,
+  };
+}
+
+function updateTaskCompletion(
+  journeyId: string,
+  taskId: string,
+  completed: boolean,
+): TaskCompletionResult {
+  const currentJourney = journeyStore.getSnapshot().find((journey) => journey.id === journeyId);
+  const currentTask = currentJourney ? findTask(currentJourney, taskId)?.task : undefined;
+  if (!currentJourney || !currentTask) {
+    return {
+      taskCompleted: false,
+      xp: 0,
+      gems: 0,
+      phaseCompleted: false,
+      phaseRewarded: false,
+      journeyCompleted: false,
+      journeyRewarded: false,
+    };
+  }
+
+  const updatedJourney: Journey = {
+    ...currentJourney,
+    phases: currentJourney.phases.map((phase) => ({
+      ...phase,
+      tasks: phase.tasks.map((task) => (task.id === taskId ? { ...task, completed } : task)),
+    })),
+  };
+  updatedJourney.progress = calcProgress(updatedJourney);
+  journeyStore.setAll(
+    journeyStore
+      .getSnapshot()
+      .map((journey) => (journey.id === journeyId ? updatedJourney : journey)),
+  );
+
+  if (completed && !currentTask.completed) {
+    const updatedTask = findTask(updatedJourney, taskId)?.task;
+    if (updatedTask) return awardForCompletedTask(updatedJourney, updatedTask);
+  }
+
+  return completionResult(updatedJourney, taskId);
+}
+
 export const journeyStore = {
   subscribe(listener: () => void) {
     listeners.add(listener);
@@ -150,11 +305,14 @@ export const journeyStore = {
     return cache;
   },
   getServerSnapshot(): Journey[] {
-    return demoJourneys;
+    return DEMO_JOURNEYS;
   },
   setAll(list: Journey[]) {
-    cache = list;
-    write(list);
+    const normalized = list
+      .map((journey) => normalizeJourney(journey))
+      .filter((journey): journey is Journey => journey !== null);
+    cache = normalized;
+    write(normalized);
     emit();
   },
   create(input: GoalInput): Journey {
@@ -163,33 +321,13 @@ export const journeyStore = {
     journeyStore.setActiveId(journey.id);
     return journey;
   },
-  toggleTask(journeyId: string, taskId: string): { xp: number; gems: number } {
-    let completedJourney: Journey | null = null;
-    let completedTask: Task | null = null;
-    const next = journeyStore.getSnapshot().map((journey) => {
-      if (journey.id !== journeyId) return journey;
-      const updated: Journey = {
-        ...journey,
-        phases: journey.phases.map((phase) => ({
-          ...phase,
-          tasks: phase.tasks.map((task) =>
-            task.id === taskId ? { ...task, completed: !task.completed } : task,
-          ),
-        })),
-      };
-      const withProgress = { ...updated, progress: calcProgress(updated) };
-      const toggled = findTask(withProgress, taskId);
-      if (toggled?.task.completed) {
-        completedJourney = withProgress;
-        completedTask = toggled.task;
-      }
-      return withProgress;
-    });
-    journeyStore.setAll(next);
-    if (completedJourney && completedTask) {
-      return awardForCompletedTask(completedJourney, completedTask);
-    }
-    return { xp: 0, gems: 0 };
+  toggleTask(journeyId: string, taskId: string): TaskCompletionResult {
+    const journey = journeyStore.getSnapshot().find((item) => item.id === journeyId);
+    const task = journey ? findTask(journey, taskId)?.task : undefined;
+    return updateTaskCompletion(journeyId, taskId, task ? !task.completed : false);
+  },
+  completeTask(journeyId: string, taskId: string): TaskCompletionResult {
+    return updateTaskCompletion(journeyId, taskId, true);
   },
   getActiveId(): string | null {
     if (!isBrowser()) return null;

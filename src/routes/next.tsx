@@ -12,7 +12,8 @@ export const Route = createFileRoute("/next")({
       { title: "Your Next Move — LIFECRAFT" },
       {
         name: "description",
-        content: "One recommended action, sized to your time, chosen to move your current milestone.",
+        content:
+          "One recommended action, sized to your time, chosen to move your current milestone.",
       },
       { property: "og:title", content: "Your Next Move — LIFECRAFT" },
       {
@@ -84,8 +85,21 @@ function NextMovePage() {
                   size="lg"
                   className="w-full sm:w-auto"
                   onClick={() => {
-                    journeyStore.toggleTask(move.journeyId, move.taskId);
-                    toast.success("Task completed", { description: move.task });
+                    const result = journeyStore.completeTask(move.journeyId, move.taskId);
+                    const rewardText =
+                      result.xp > 0 || result.gems > 0
+                        ? `+${result.xp} XP · +${result.gems} Gems.`
+                        : "No new rewards were granted.";
+                    toast.success(
+                      result.taskCompleted ? "Task completed" : "Task could not be completed",
+                      {
+                        description: `${rewardText} ${
+                          result.journeyCompleted
+                            ? "Every task in this journey is done."
+                            : "Your next move is ready."
+                        }`,
+                      },
+                    );
                   }}
                 >
                   Mark complete

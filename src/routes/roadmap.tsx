@@ -61,35 +61,66 @@ function Roadmap() {
   return (
     <AppShell>
       <p className="text-eyebrow text-primary">{categoryLabels[journey.category]} journey</p>
-      <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:items-end sm:justify-between">
+      <div className="mt-3 min-w-0">
         <div className="min-w-0">
-          <h1 className="text-2xl font-semibold sm:text-3xl">{journey.title}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{journey.description}</p>
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{journey.title}</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+            {journey.description}
+          </p>
         </div>
-        <span className="shrink-0 text-xs text-muted-foreground">
-          {journey.phases.length} phases · {tasks.length} tasks
-        </span>
       </div>
 
       <section className="surface-panel mt-6 p-5 sm:p-6" aria-label="Journey summary">
-        <ProgressMeter value={journey.progress} label="Overall progress" />
-        <dl className="mt-6 grid grid-cols-2 gap-5 sm:grid-cols-3">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-eyebrow text-muted-foreground">Journey progress</p>
+            <p className="mt-1 text-sm text-foreground">
+              {tasks.filter((task) => task.completed).length}/{tasks.length} tasks complete
+            </p>
+          </div>
+          <span className="font-display text-2xl text-primary">{journey.progress}%</span>
+        </div>
+        <div className="mt-4">
+          <ProgressMeter value={journey.progress} ariaLabel="Overall progress" />
+        </div>
+        <dl className="mt-6 grid grid-cols-2 gap-x-5 gap-y-4 sm:grid-cols-3">
           <div>
             <dt className="text-xs text-muted-foreground">Daily time</dt>
-            <dd className="mt-1 truncate text-sm">{journey.dailyTime}</dd>
+            <dd className="mt-1 text-sm">{journey.dailyTime}</dd>
           </div>
           <div>
             <dt className="text-xs text-muted-foreground">Target date</dt>
-            <dd className="mt-1 truncate text-sm">{journey.targetDate || "Open-ended"}</dd>
+            <dd className="mt-1 text-sm">{journey.targetDate || "Open-ended"}</dd>
           </div>
           <div className="col-span-2 sm:col-span-1">
             <dt className="text-xs text-muted-foreground">Next move</dt>
             <dd className="mt-1 truncate text-sm">{nextMove ? nextMove.task : "All done"}</dd>
           </div>
+          <div className="col-span-2 text-xs text-muted-foreground sm:col-span-3">
+            {journey.phases.length} phases · {tasks.length} total tasks
+          </div>
         </dl>
       </section>
 
-      <div className="mt-6 space-y-4">
+      <div
+        className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground"
+        aria-label="Task status legend"
+      >
+        <span className="inline-flex items-center gap-2">
+          <span className="size-2 rounded-full bg-primary" aria-hidden />
+          Next move
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="size-2 rounded-full bg-primary/40" aria-hidden />
+          Completed
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="size-2 rounded-full border border-border" aria-hidden />
+          Upcoming
+        </span>
+      </div>
+
+      <div className="mt-4 space-y-4">
         {journey.phases.map((phase) => (
           <MilestoneSection
             key={phase.id}

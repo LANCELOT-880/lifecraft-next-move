@@ -28,12 +28,22 @@ export function TaskRow({
         >
           {task.title}
         </span>
-        <span className="mt-0.5 block text-xs text-muted-foreground sm:hidden">{meta}</span>
+        <span className="mt-0.5 block truncate text-xs text-muted-foreground sm:hidden">
+          {meta} · {task.impact}
+        </span>
       </span>
 
-      <span className="hidden shrink-0 text-xs text-muted-foreground sm:block">{meta}</span>
+      <span className="hidden shrink-0 text-right text-xs text-muted-foreground sm:block">
+        <span className="block">{meta}</span>
+        <span className="mt-0.5 block text-[0.6875rem] text-muted-foreground/80">
+          {task.impact}
+        </span>
+      </span>
       {journeyId ? (
-        <ChevronRight className="hidden size-4 shrink-0 text-muted-foreground sm:block" aria-hidden />
+        <ChevronRight
+          className="hidden size-4 shrink-0 text-muted-foreground sm:block"
+          aria-hidden
+        />
       ) : null}
     </>
   );
@@ -42,10 +52,12 @@ export function TaskRow({
 
   return (
     <div
-      className={`grid w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-lg border px-3 py-3 transition-colors duration-200 sm:gap-4 sm:px-4 ${
+      className={`grid w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors duration-200 sm:gap-4 sm:px-4 ${
         isCurrent
-          ? "border-primary/40 bg-accent-soft"
-          : "border-transparent hover:border-border hover:bg-surface-2/60"
+          ? "border-primary/50 bg-accent-soft shadow-[inset_3px_0_0_hsl(var(--primary))]"
+          : isDone
+            ? "border-transparent bg-surface-2/40"
+            : "border-transparent hover:border-border hover:bg-surface-2/60"
       }`}
     >
       <button

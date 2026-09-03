@@ -1,4 +1,5 @@
 import type { Phase, Task } from "@/lib/journey/types";
+import { ProgressMeter } from "./ProgressMeter";
 import { TaskRow } from "./TaskRow";
 
 export function MilestoneSection({
@@ -13,27 +14,37 @@ export function MilestoneSection({
   onToggleTask?: ((task: Task) => void) | undefined;
 }) {
   const done = phase.tasks.filter((task) => task.completed).length;
+  const progress = phase.tasks.length ? Math.round((done / phase.tasks.length) * 100) : 0;
 
   return (
-    <section className="surface-panel p-5 sm:p-6">
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
+    <section className="surface-panel overflow-hidden p-5 sm:p-6">
+      <header className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_12rem] sm:items-start sm:gap-8">
         <div className="min-w-0">
-          <p className="text-eyebrow text-primary">
-            Phase {String(phase.order).padStart(2, "0")} — {phase.title}
-          </p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <p className="text-eyebrow text-primary">
+              Phase {String(phase.order).padStart(2, "0")}
+            </p>
+            <span className="text-xs text-muted-foreground">
+              {done}/{phase.tasks.length} tasks
+            </span>
+          </div>
+          <h2 className="mt-2 text-xl font-semibold">{phase.title}</h2>
           {phase.summary ? (
-            <p className="mt-2 text-sm text-muted-foreground">{phase.summary}</p>
+            <p className="mt-2 text-sm leading-5 text-muted-foreground">{phase.summary}</p>
           ) : null}
         </div>
-        <span className="shrink-0 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground">
-          {done}/{phase.tasks.length}
-        </span>
+        <ProgressMeter value={progress} label="Phase progress" size="sm" />
       </header>
 
-      <ul className="mt-4 space-y-1">
+      <ul className="mt-5 space-y-1 border-t border-border/60 pt-3">
         {phase.tasks.map((task) => (
           <li key={task.id}>
-            <TaskRow task={task} journeyId={journeyId} isNext={task.id === nextTaskId} onToggle={onToggleTask} />
+            <TaskRow
+              task={task}
+              journeyId={journeyId}
+              isNext={task.id === nextTaskId}
+              onToggle={onToggleTask}
+            />
           </li>
         ))}
       </ul>

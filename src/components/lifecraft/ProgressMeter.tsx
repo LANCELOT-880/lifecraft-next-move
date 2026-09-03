@@ -1,10 +1,11 @@
 interface ProgressMeterProps {
   value: number;
   label?: string;
+  ariaLabel?: string;
   size?: "sm" | "md";
 }
 
-export function ProgressMeter({ value, label, size = "md" }: ProgressMeterProps) {
+export function ProgressMeter({ value, label, ariaLabel, size = "md" }: ProgressMeterProps) {
   const clamped = Math.max(0, Math.min(100, value));
   return (
     <div className="w-full">
@@ -19,7 +20,7 @@ export function ProgressMeter({ value, label, size = "md" }: ProgressMeterProps)
         aria-valuenow={clamped}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label={label ?? "Progress"}
+        aria-label={ariaLabel ?? label ?? "Progress"}
         className={`w-full overflow-hidden rounded-full bg-surface-2 ${size === "sm" ? "h-1.5" : "h-2"}`}
       >
         <div

@@ -12,7 +12,7 @@ const nav = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background lg:h-screen lg:overflow-hidden">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-surface-2 focus:px-3 focus:py-2 focus:text-sm"
@@ -20,7 +20,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         Skip to content
       </a>
 
-      <div className="lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
+      <div className="lg:grid lg:h-screen lg:grid-cols-[248px_minmax(0,1fr)]">
         <aside className="sticky top-0 hidden h-screen flex-col border-r border-border bg-sidebar px-4 py-6 lg:flex">
           <Link to="/" className="px-2 font-display text-sm font-bold tracking-[0.28em] text-foreground">
             LIFECRAFT
@@ -55,7 +55,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </aside>
 
-        <div className="min-w-0">
+        <div className="min-w-0 lg:h-screen lg:overflow-y-auto">
           <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-border bg-background/85 px-5 py-4 backdrop-blur lg:hidden">
             <Link to="/" className="font-display text-sm font-bold tracking-[0.28em]">
               LIFECRAFT

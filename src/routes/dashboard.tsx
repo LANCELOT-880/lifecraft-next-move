@@ -5,8 +5,8 @@ import { JourneyCard } from "@/components/lifecraft/JourneyCard";
 import { NextMoveCard } from "@/components/lifecraft/NextMoveCard";
 import { RewardsSummary } from "@/components/lifecraft/RewardsSummary";
 import { Button } from "@/components/ui/button";
-import { user } from "@/data/mock";
 import { getNextMove } from "@/lib/journey/journeyStore";
+import { useSettings } from "@/lib/settings/settingsStore";
 import { useJourney, useJourneys } from "@/lib/journey/useJourneys";
 
 export const Route = createFileRoute("/dashboard")({
@@ -28,6 +28,7 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function Dashboard() {
+  const settings = useSettings();
   const journeys = useJourneys();
   const activeJourney = useJourney();
   const nextMove = activeJourney ? getNextMove(activeJourney) : null;
@@ -37,7 +38,9 @@ function Dashboard() {
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:items-end sm:justify-between">
         <div className="min-w-0">
           <p className="text-eyebrow text-primary">Your dashboard</p>
-          <h1 className="mt-3 text-2xl font-semibold sm:text-3xl">Good evening, {user.name}.</h1>
+          <h1 className="mt-3 text-2xl font-semibold sm:text-3xl">
+            Good evening, {settings.loaded ? `${settings.fullName}.` : ""}
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             A clear next step for everything you’re building.
           </p>

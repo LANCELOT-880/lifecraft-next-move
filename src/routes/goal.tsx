@@ -1,9 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
 import { AppShell } from "@/components/lifecraft/AppShell";
 import { MilestoneSection } from "@/components/lifecraft/MilestoneSection";
 import { NextMoveCard } from "@/components/lifecraft/NextMoveCard";
 import { ProgressMeter } from "@/components/lifecraft/ProgressMeter";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { allTasks, completedCount, getNextMove, journeyStore } from "@/lib/journey/journeyStore";
 import { useJourney } from "@/lib/journey/useJourneys";
 
@@ -27,6 +31,67 @@ export const Route = createFileRoute("/goal")({
   }),
   component: GoalDetails,
 });
+
+const timeOptions = ["15 min", "30 min", "1 hour", "Flexible"];
+
+function JourneySettings({ journey }: { journey: NonNullable<ReturnType<typeof useJourney>> }) {
+  const [dailyTime, setDailyTime] = useState(journey.dailyTime);
+  const [targetDate, setTargetDate] = useState(journey.targetDate);
+
+  return (
+    <form
+      className="surface-panel mt-8 p-5 sm:p-6"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (journeyStore.updateJourneySettings(journey.id, { dailyTime, targetDate })) {
+          toast.success("Journey settings saved");
+        } else {
+          toast.error("Journey settings could not be saved");
+        }
+      }}
+    >
+      <h2 className="text-base font-semibold">Journey settings</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        These settings apply only to this journey.
+      </p>
+      <div className="mt-5 grid gap-5 sm:grid-cols-2">
+        <div className="space-y-3">
+          <Label>Daily time budget</Label>
+          <div role="radiogroup" aria-label="Daily time budget" className="flex flex-wrap gap-2">
+            {timeOptions.map((option) => (
+              <button
+                key={option}
+                type="button"
+                role="radio"
+                aria-checked={dailyTime === option}
+                onClick={() => setDailyTime(option)}
+                className={`rounded-lg border px-4 py-2 text-sm transition-colors duration-200 ${
+                  dailyTime === option
+                    ? "border-primary/50 bg-accent-soft text-foreground"
+                    : "border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="target-date">Target date</Label>
+          <Input
+            id="target-date"
+            type="date"
+            value={targetDate}
+            onChange={(event) => setTargetDate(event.target.value)}
+          />
+        </div>
+      </div>
+      <Button type="submit" className="mt-5 w-full sm:w-auto">
+        Save journey settings
+      </Button>
+    </form>
+  );
+}
 
 function GoalDetails() {
   const { id } = Route.useSearch();
@@ -87,6 +152,11 @@ function GoalDetails() {
       <div className="mt-6">
         <NextMoveCard move={nextMove} />
       </div>
+
+      <JourneySettings
+        key={`${journey.id}:${journey.dailyTime}:${journey.targetDate}`}
+        journey={journey}
+      />
 
       <section className="mt-12" aria-labelledby="phases-heading">
         <h2 id="phases-heading" className="text-eyebrow text-muted-foreground">

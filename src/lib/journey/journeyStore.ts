@@ -83,6 +83,16 @@ function normalizePhase(value: unknown, index: number): Phase | null {
   } as Phase;
 }
 
+function normalizeTargetDate(value: unknown): string {
+  return typeof value === "string" && /^(\d{4})-(\d{2})-(\d{2})$/.test(value) ? value : "";
+}
+
+function normalizeDailyTime(value: unknown): string {
+  return value === "15 min" || value === "30 min" || value === "1 hour" || value === "Flexible"
+    ? value
+    : "30 min";
+}
+
 export function normalizeJourney(value: unknown): Journey | null {
   const id = isRecord(value) ? value["id"] : undefined;
   const title = isRecord(value) ? value["title"] : undefined;
@@ -99,7 +109,13 @@ export function normalizeJourney(value: unknown): Journey | null {
   const phases = phasesValue
     .map((phase, index) => normalizePhase(phase, index))
     .filter((phase): phase is Phase => phase !== null);
-  const journey = { ...value, phases, progress: 0 } as Journey;
+  const journey = {
+    ...value,
+    phases,
+    dailyTime: normalizeDailyTime(value["dailyTime"]),
+    targetDate: normalizeTargetDate(value["targetDate"]),
+    progress: 0,
+  } as Journey;
   return { ...journey, progress: calcProgress(journey) };
 }
 
@@ -117,26 +133,78 @@ export function findTask(journey: Journey, taskId: string): { task: Task; phase:
   return null;
 }
 
-export function getNextMove(journey: Journey): NextMove | null {
+const TIME_BUDGETS: Record<string, number | null> = {
+  "15 min": 15,
+  "30 min": 30,
+  "1 hour": 60,
+  Flexible: null,
+};
+
+const IMPACT_RANK: Record<Task["impact"], number> = {
+  "High impact": 3,
+  "Medium impact": 2,
+  "Low impact": 1,
+};
+
+const DIFFICULTY_RANK: Record<Task["difficulty"], number> = {
+  Easy: 1,
+  Medium: 2,
+  Hard: 3,
+};
+
+function isBetterTask(candidate: Task, current: Task): boolean {
+  const impactDifference = IMPACT_RANK[candidate.impact] - IMPACT_RANK[current.impact];
+  if (impactDifference !== 0) return impactDifference > 0;
+
+  return DIFFICULTY_RANK[candidate.difficulty] < DIFFICULTY_RANK[current.difficulty];
+}
+
+export function selectAdaptiveNextMove(journey: Journey, dailyTime = journey?.dailyTime): Task | null {
   if (!journey || !Array.isArray(journey.phases)) return null;
+
   for (const phase of journey.phases) {
     if (!phase || !Array.isArray(phase.tasks)) continue;
-    const task = phase.tasks.find((item) => !item.completed);
-    if (task) {
-      return {
-        taskId: task.id,
-        task: task.title,
-        journeyId: journey.id,
-        journey: journey.title,
-        phase: phase.title,
-        minutes: task.estimatedMinutes,
-        difficulty: task.difficulty,
-        impact: task.impact,
-        reason: `This is the next open step in ${phase.title.toLowerCase()} — completing it moves ${journey.title} forward.`,
-      };
-    }
+    const incompleteTasks = phase.tasks.filter((task) => !task.completed);
+    if (incompleteTasks.length === 0) continue;
+    const firstTask = incompleteTasks[0];
+    if (!firstTask) continue;
+
+    const budget = TIME_BUDGETS[dailyTime];
+    if (budget === undefined) return firstTask;
+
+    const fittingTasks =
+      budget === null
+        ? incompleteTasks
+        : incompleteTasks.filter((task) => task.estimatedMinutes <= budget);
+    const bestTask = fittingTasks[0] ?? firstTask;
+
+    return fittingTasks.slice(1).reduce(
+      (best, task) => (isBetterTask(task, best) ? task : best),
+      bestTask,
+    );
   }
+
   return null;
+}
+
+export function getNextMove(journey: Journey): NextMove | null {
+  const task = selectAdaptiveNextMove(journey);
+  if (!task) return null;
+
+  const phase = journey.phases.find((item) => item.tasks.some((candidate) => candidate.id === task.id));
+  if (!phase) return null;
+
+  return {
+    taskId: task.id,
+    task: task.title,
+    journeyId: journey.id,
+    journey: journey.title,
+    phase: phase.title,
+    minutes: task.estimatedMinutes,
+    difficulty: task.difficulty,
+    impact: task.impact,
+    reason: `This is the next open step in ${phase.title.toLowerCase()} — completing it moves ${journey.title} forward.`,
+  };
 }
 
 function uid(prefix: string): string {
@@ -320,6 +388,31 @@ export const journeyStore = {
     journeyStore.setAll([journey, ...journeyStore.getSnapshot()]);
     journeyStore.setActiveId(journey.id);
     return journey;
+  },
+  updateDailyTime(journeyId: string, dailyTime: string): boolean {
+    return journeyStore.updateJourneySettings(journeyId, { dailyTime });
+  },
+  updateJourneySettings(
+    journeyId: string,
+    changes: Partial<Pick<Journey, "dailyTime" | "targetDate">>,
+  ): boolean {
+    const journeys = journeyStore.getSnapshot();
+    if (!journeys.some((journey) => journey.id === journeyId)) return false;
+    journeyStore.setAll(
+      journeys.map((journey) =>
+        journey.id === journeyId
+          ? {
+              ...journey,
+              ...changes,
+              targetDate:
+                changes.targetDate === undefined
+                  ? journey.targetDate
+                  : normalizeTargetDate(changes.targetDate),
+            }
+          : journey,
+      ),
+    );
+    return true;
   },
   toggleTask(journeyId: string, taskId: string): TaskCompletionResult {
     const journey = journeyStore.getSnapshot().find((item) => item.id === journeyId);

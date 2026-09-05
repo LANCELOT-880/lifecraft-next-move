@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/lifecraft/AppShell";
 import { RewardsSummary } from "@/components/lifecraft/RewardsSummary";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { user } from "@/data/mock";
+import { settingsStore, useSettings } from "@/lib/settings/settingsStore";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -24,12 +25,16 @@ export const Route = createFileRoute("/settings")({
   component: SettingsPage,
 });
 
-const timeOptions = ["15 min", "30 min", "1 hour", "Flexible"];
-
 function SettingsPage() {
-  const [name, setName] = useState(user.fullName);
-  const [daily, setDaily] = useState(user.dailyTime);
-  const [reminders, setReminders] = useState(true);
+  const settings = useSettings();
+  const [name, setName] = useState(settings.fullName);
+  const [reminders, setReminders] = useState(settings.dailyReminderEnabled);
+
+  useEffect(() => {
+    if (!settings.loaded) return;
+    setName(settings.fullName);
+    setReminders(settings.dailyReminderEnabled);
+  }, [settings.dailyReminderEnabled, settings.fullName, settings.loaded]);
 
   return (
     <AppShell>
@@ -42,7 +47,15 @@ function SettingsPage() {
         className="mt-8 space-y-4"
         onSubmit={(e) => {
           e.preventDefault();
-          toast.success("Preferences saved");
+          const settingsSaved = settingsStore.update({
+            fullName: name,
+            dailyReminderEnabled: reminders,
+          });
+          if (settingsSaved) {
+            toast.success("Preferences saved");
+          } else {
+            toast.error("Preferences could not be saved");
+          }
         }}
       >
         <section className="surface-panel p-5 sm:p-6">
@@ -58,35 +71,6 @@ function SettingsPage() {
             </div>
           </div>
           <RewardsSummary className="mt-5" />
-        </section>
-
-        <section className="surface-panel p-5 sm:p-6">
-          <h2 className="text-base font-semibold">Daily time budget</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Next moves are sized to fit this window.
-          </p>
-          <div
-            role="radiogroup"
-            aria-label="Daily time budget"
-            className="mt-5 flex flex-wrap gap-2"
-          >
-            {timeOptions.map((option) => (
-              <button
-                key={option}
-                type="button"
-                role="radio"
-                aria-checked={daily === option}
-                onClick={() => setDaily(option)}
-                className={`rounded-lg border px-4 py-2 text-sm transition-colors duration-200 ${
-                  daily === option
-                    ? "border-primary/50 bg-accent-soft text-foreground"
-                    : "border-border text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
         </section>
 
         <section className="surface-panel grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 p-5 sm:p-6">

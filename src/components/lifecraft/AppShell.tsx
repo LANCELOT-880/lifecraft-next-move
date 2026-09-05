@@ -1,7 +1,12 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Compass, LayoutDashboard, Settings, Zap } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
+import { toast } from "sonner";
 import { user } from "@/data/mock";
+import { getNextMove } from "@/lib/journey/journeyStore";
+import { reminderStore } from "@/lib/reminders/reminderStore";
+import { useSettings } from "@/lib/settings/settingsStore";
+import { useJourney } from "@/lib/journey/useJourneys";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -11,6 +16,30 @@ const nav = [
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const settings = useSettings();
+  const journey = useJourney();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!settings.loaded || !settings.dailyReminderEnabled || !journey) return;
+
+    const move = getNextMove(journey);
+    if (!move || !reminderStore.shouldShowToday()) return;
+
+    reminderStore.markShownToday();
+    toast("Today's next move", {
+      description: `${move.task} · ${move.minutes} minutes`,
+      action: {
+        label: "Start",
+        onClick: () =>
+          void navigate({
+            to: "/task",
+            search: { journey: move.journeyId, task: move.taskId },
+          }),
+      },
+    });
+  }, [journey, navigate, settings.dailyReminderEnabled, settings.loaded]);
+
   return (
     <div className="min-h-screen bg-background lg:h-screen lg:overflow-hidden">
       <a
@@ -22,7 +51,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="lg:grid lg:h-screen lg:grid-cols-[248px_minmax(0,1fr)]">
         <aside className="sticky top-0 hidden h-screen flex-col border-r border-border bg-sidebar px-4 py-6 lg:flex">
-          <Link to="/" className="px-2 font-display text-sm font-bold tracking-[0.28em] text-foreground">
+          <Link
+            to="/"
+            className="px-2 font-display text-sm font-bold tracking-[0.28em] text-foreground"
+          >
             LIFECRAFT
           </Link>
 
@@ -32,7 +64,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 key={to}
                 to={to}
                 activeProps={{ className: "bg-accent-soft text-foreground" }}
-                inactiveProps={{ className: "text-muted-foreground hover:bg-surface-2 hover:text-foreground" }}
+                inactiveProps={{
+                  className: "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
+                }}
                 className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors duration-200"
               >
                 <Icon className="size-4 shrink-0" aria-hidden />
@@ -49,7 +83,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               {user.initials}
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-sm text-foreground">{user.fullName}</span>
+              <span className="block truncate text-sm text-foreground">
+                {settings.loaded ? settings.fullName : ""}
+              </span>
               <span className="block truncate text-xs text-muted-foreground">{user.email}</span>
             </span>
           </div>

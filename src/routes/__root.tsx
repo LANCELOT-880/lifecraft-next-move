@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "../components/ui/sonner";
@@ -124,11 +124,20 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const [hydrationReady, setHydrationReady] = useState(false);
+
+  useEffect(() => {
+    setHydrationReady(true);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      {hydrationReady ? (
+        /* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */
+        <Outlet />
+      ) : (
+        <div aria-busy="true" className="min-h-screen bg-background" />
+      )}
       <Toaster />
     </QueryClientProvider>
   );

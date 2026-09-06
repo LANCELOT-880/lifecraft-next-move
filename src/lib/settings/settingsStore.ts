@@ -4,6 +4,7 @@ import { user } from "@/data/mock";
 export interface AppSettings {
   fullName: string;
   dailyReminderEnabled: boolean;
+  dailyReminderTime: string;
 }
 
 export interface SettingsSnapshot extends AppSettings {
@@ -14,7 +15,12 @@ const SETTINGS_KEY = "lifecraft.settings.v1";
 const DEFAULT_SETTINGS: AppSettings = {
   fullName: user.fullName,
   dailyReminderEnabled: true,
+  dailyReminderTime: "08:00",
 };
+
+export function isValidDailyReminderTime(value: unknown): value is string {
+  return typeof value === "string" && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value);
+}
 
 function isBrowser(): boolean {
   return typeof window !== "undefined";
@@ -39,6 +45,10 @@ function read(): AppSettings {
         isRecord(parsed) && typeof parsed["dailyReminderEnabled"] === "boolean"
           ? parsed["dailyReminderEnabled"]
           : DEFAULT_SETTINGS.dailyReminderEnabled,
+      dailyReminderTime:
+        isRecord(parsed) && isValidDailyReminderTime(parsed["dailyReminderTime"])
+          ? parsed["dailyReminderTime"]
+          : DEFAULT_SETTINGS.dailyReminderTime,
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -51,6 +61,7 @@ const listeners = new Set<() => void>();
 const SERVER_SNAPSHOT: SettingsSnapshot = {
   fullName: "",
   dailyReminderEnabled: true,
+  dailyReminderTime: DEFAULT_SETTINGS.dailyReminderTime,
   loaded: false,
 };
 
@@ -74,10 +85,17 @@ export const settingsStore = {
   update(next: AppSettings): boolean {
     if (!isBrowser()) return false;
 
+    const normalized = {
+      ...next,
+      dailyReminderTime: isValidDailyReminderTime(next.dailyReminderTime)
+        ? next.dailyReminderTime
+        : DEFAULT_SETTINGS.dailyReminderTime,
+    };
+
     try {
-      window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
-      cache = next;
-      snapshotCache = { ...next, loaded: true };
+      window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(normalized));
+      cache = normalized;
+      snapshotCache = { ...normalized, loaded: true };
       emit();
       return true;
     } catch {

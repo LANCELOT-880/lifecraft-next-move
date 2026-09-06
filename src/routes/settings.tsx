@@ -14,7 +14,10 @@ export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
       { title: "Settings — LIFECRAFT" },
-      { name: "description", content: "Manage your LIFECRAFT profile, daily time budget and reminders." },
+      {
+        name: "description",
+        content: "Manage your LIFECRAFT profile, daily time budget and reminders.",
+      },
       { property: "og:title", content: "Settings — LIFECRAFT" },
       {
         property: "og:description",
@@ -29,12 +32,19 @@ function SettingsPage() {
   const settings = useSettings();
   const [name, setName] = useState(settings.fullName);
   const [reminders, setReminders] = useState(settings.dailyReminderEnabled);
+  const [reminderTime, setReminderTime] = useState(settings.dailyReminderTime);
 
   useEffect(() => {
     if (!settings.loaded) return;
     setName(settings.fullName);
     setReminders(settings.dailyReminderEnabled);
-  }, [settings.dailyReminderEnabled, settings.fullName, settings.loaded]);
+    setReminderTime(settings.dailyReminderTime);
+  }, [
+    settings.dailyReminderEnabled,
+    settings.dailyReminderTime,
+    settings.fullName,
+    settings.loaded,
+  ]);
 
   return (
     <AppShell>
@@ -50,6 +60,7 @@ function SettingsPage() {
           const settingsSaved = settingsStore.update({
             fullName: name,
             dailyReminderEnabled: reminders,
+            dailyReminderTime: reminderTime,
           });
           if (settingsSaved) {
             toast.success("Preferences saved");
@@ -84,6 +95,21 @@ function SettingsPage() {
             aria-label="Daily next-move reminder"
             className="shrink-0"
           />
+          <div className="col-span-2 max-w-xs space-y-2">
+            <Label
+              htmlFor="reminder-time"
+              className={!reminders ? "text-muted-foreground" : undefined}
+            >
+              Reminder time
+            </Label>
+            <Input
+              id="reminder-time"
+              type="time"
+              value={reminderTime}
+              onChange={(e) => setReminderTime(e.target.value)}
+              className={!reminders ? "opacity-60" : undefined}
+            />
+          </div>
         </section>
 
         <div className="flex justify-end">

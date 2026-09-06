@@ -24,7 +24,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (!settings.loaded || !settings.dailyReminderEnabled || !journey) return;
 
     const move = getNextMove(journey);
-    if (!move || !reminderStore.shouldShowToday()) return;
+    if (!move || !reminderStore.shouldShowToday(settings.dailyReminderTime)) return;
 
     reminderStore.markShownToday();
     toast("Today's next move", {
@@ -38,7 +38,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           }),
       },
     });
-  }, [journey, navigate, settings.dailyReminderEnabled, settings.loaded]);
+  }, [
+    journey,
+    navigate,
+    settings.dailyReminderEnabled,
+    settings.dailyReminderTime,
+    settings.loaded,
+  ]);
 
   return (
     <div className="min-h-screen bg-background lg:h-screen lg:overflow-hidden">

@@ -16,6 +16,18 @@ function getLocalDate(): string {
   return `${year}-${month}-${day}`;
 }
 
+function hasReachedLocalTime(reminderTime: string): boolean {
+  const timeParts = reminderTime.split(":");
+  if (timeParts.length !== 2) return false;
+
+  const hours = Number(timeParts[0]);
+  const minutes = Number(timeParts[1]);
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) return false;
+
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes() >= hours * 60 + minutes;
+}
+
 function read(): ReminderMetadata | null {
   if (!isBrowser()) return null;
 
@@ -37,8 +49,8 @@ function read(): ReminderMetadata | null {
 }
 
 export const reminderStore = {
-  shouldShowToday(): boolean {
-    return read()?.lastShownDate !== getLocalDate();
+  shouldShowToday(dailyReminderTime: string): boolean {
+    return read()?.lastShownDate !== getLocalDate() && hasReachedLocalTime(dailyReminderTime);
   },
   markShownToday(): boolean {
     if (!isBrowser()) return false;

@@ -59,8 +59,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         <aside className="sticky top-0 hidden h-screen flex-col border-r border-border bg-sidebar px-4 py-6 lg:flex">
           <Link
             to="/"
-            className="px-2 font-display text-sm font-bold tracking-[0.28em] text-foreground"
+            className="flex items-center gap-2 px-2 font-display text-sm font-bold tracking-[0.28em] text-foreground"
           >
+            <img
+              src="/favicon.png"
+              alt=""
+              aria-hidden="true"
+              className="size-7 shrink-0 object-contain"
+            />
             LIFECRAFT
           </Link>
 

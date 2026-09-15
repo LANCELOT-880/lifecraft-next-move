@@ -100,6 +100,12 @@ export const demoTaskLessons: Record<string, Lesson> = {
       ["Why test English → Japanese too?", ["It prepares you to speak", "It is easier", "It saves time", "No reason"], 0],
     ],
     "Choose ten of today's words, write one short sentence for each, then recall all ten from English without looking.",
+      [
+        { term: "ひと", reading: "hito", meaning: "person" },
+        { term: "いえ", reading: "ie", meaning: "house" },
+        { term: "たべる", reading: "taberu", meaning: "to eat" },
+        { term: "きょう", reading: "kyou", meaning: "today" },
+      ],
   ),
   "demo-japanese-t6": L(
     [

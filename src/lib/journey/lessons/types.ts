@@ -3,6 +3,12 @@ export interface LessonExample {
   meaning?: string;
 }
 
+export interface VocabularyEntry {
+  term: string;
+  reading?: string;
+  meaning: string;
+}
+
 export interface PracticeAnswer {
   id: string;
   text: string;
@@ -19,6 +25,7 @@ export interface Lesson {
   /** Short beginner-friendly explanation, one paragraph per entry. */
   learn: string[];
   examples: LessonExample[];
+  vocabulary?: VocabularyEntry[];
   practice: PracticeQuestion[];
   /** Small completion exercise the learner does before finishing. */
   exercise: string;
@@ -27,13 +34,15 @@ export interface Lesson {
 /** Compact authoring helper so each step can own a full, distinct lesson. */
 export function L(
   learn: string[],
-  examples: Array<[string, string]>,
+  examples: Array<[string, string, string?]>,
   practice: Array<[string, string[], number]>,
   exercise: string,
+  vocabulary?: VocabularyEntry[],
 ): Lesson {
   return {
     learn,
     examples: examples.map(([text, meaning]) => ({ text, meaning })),
+    ...(vocabulary ? { vocabulary } : {}),
     practice: practice.map(([question, options, answerIndex], index) => {
       const questionId = `q${index + 1}`;
       return {

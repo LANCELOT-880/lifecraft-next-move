@@ -3,7 +3,8 @@ import { Zap } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/lifecraft/AppShell";
 import { Button } from "@/components/ui/button";
-import { getNextMove, journeyStore } from "@/lib/journey/journeyStore";
+import { findTask, getNextMove, journeyStore } from "@/lib/journey/journeyStore";
+import { REWARDS } from "@/lib/journey/rewards";
 import { useJourney } from "@/lib/journey/useJourneys";
 
 export const Route = createFileRoute("/next")({
@@ -28,6 +29,13 @@ export const Route = createFileRoute("/next")({
 function NextMovePage() {
   const journey = useJourney();
   const move = journey ? getNextMove(journey) : null;
+  const nextTask = journey && move ? findTask(journey, move.taskId)?.task : undefined;
+  const currentPhase = journey?.phases.find((phase) =>
+    phase.tasks.some((task) => task.id === move?.taskId),
+  );
+  const phaseDone = currentPhase?.tasks.filter((task) => task.completed).length ?? 0;
+  const phaseTotal = currentPhase?.tasks.length ?? 0;
+  const phaseProgress = phaseTotal ? Math.round((phaseDone / phaseTotal) * 100) : 0;
 
   return (
     <AppShell>
@@ -110,6 +118,41 @@ function NextMovePage() {
                   </Link>
                 </Button>
               </div>
+
+              <dl className="surface-panel mt-10 grid grid-cols-2 gap-px overflow-hidden border border-border bg-border sm:grid-cols-4">
+                <div className="bg-surface px-4 py-4">
+                  <dt className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                    Current phase
+                  </dt>
+                  <dd className="mt-1.5 truncate text-sm text-foreground">
+                    {currentPhase?.title ?? move.phase}
+                  </dd>
+                  <dd className="mt-1 text-xs text-muted-foreground">
+                    {phaseDone}/{phaseTotal} tasks complete
+                  </dd>
+                </div>
+                <div className="bg-surface px-4 py-4">
+                  <dt className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                    Phase progress
+                  </dt>
+                  <dd className="mt-1.5 text-sm text-foreground">{phaseProgress}%</dd>
+                </div>
+                <div className="bg-surface px-4 py-4">
+                  <dt className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                    Journey progress
+                  </dt>
+                  <dd className="mt-1.5 text-sm text-foreground">{journey?.progress ?? 0}%</dd>
+                </div>
+                <div className="bg-surface px-4 py-4">
+                  <dt className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                    Task reward
+                  </dt>
+                  <dd className="mt-1.5 text-sm text-primary/90">
+                    +{nextTask?.xpReward ?? REWARDS.lessonXp} XP · +
+                    {nextTask?.gemReward ?? REWARDS.stepGems} Gems
+                  </dd>
+                </div>
+              </dl>
             </>
           ) : (
             <div className="mt-10">

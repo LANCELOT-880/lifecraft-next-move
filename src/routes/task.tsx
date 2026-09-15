@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/lifecraft/AppShell";
 import { ResourceList } from "@/components/lifecraft/ResourceList";
 import { RewardsSummary } from "@/components/lifecraft/RewardsSummary";
+import { VocabularyList } from "@/components/lifecraft/VocabularyList";
 import { Button } from "@/components/ui/button";
 import { getLesson, type Lesson } from "@/lib/journey/lessons";
 import { getResources } from "@/lib/journey/resources";
@@ -41,6 +42,10 @@ function TaskLesson() {
   const navigate = useNavigate();
   const journey = useJourney(journeyId);
   const found = journey ? findTask(journey, taskId) : null;
+
+  useEffect(() => {
+    if (journey) journeyStore.setActiveId(journey.id);
+  }, [journey?.id]);
 
   if (!journey || !found) {
     const journeyMissing = Boolean(journeyId) && !journey;
@@ -147,6 +152,10 @@ function TaskLesson() {
           ))}
         </div>
       </section>
+
+      {lesson.vocabulary?.length ? (
+        <VocabularyList entries={lesson.vocabulary} />
+      ) : null}
 
       <section className="surface-panel mt-4 p-5 sm:p-6" aria-labelledby="examples-heading">
         <h2 id="examples-heading" className="text-eyebrow text-muted-foreground">

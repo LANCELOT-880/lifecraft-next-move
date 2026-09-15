@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSyncExternalStore } from "react";
 import { Plus } from "lucide-react";
 import { AppShell } from "@/components/lifecraft/AppShell";
 import { JourneyCard } from "@/components/lifecraft/JourneyCard";
 import { NextMoveCard } from "@/components/lifecraft/NextMoveCard";
 import { RewardsSummary } from "@/components/lifecraft/RewardsSummary";
 import { Button } from "@/components/ui/button";
-import { getNextMove } from "@/lib/journey/journeyStore";
+import { getNextMove, journeyStore } from "@/lib/journey/journeyStore";
 import { useSettings } from "@/lib/settings/settingsStore";
 import { useJourney, useJourneys } from "@/lib/journey/useJourneys";
 
@@ -31,6 +32,11 @@ function Dashboard() {
   const settings = useSettings();
   const journeys = useJourneys();
   const activeJourney = useJourney();
+  const activeId = useSyncExternalStore(
+    journeyStore.subscribe,
+    journeyStore.getActiveId,
+    () => null,
+  );
   const nextMove = activeJourney ? getNextMove(activeJourney) : null;
 
   return (
@@ -74,7 +80,12 @@ function Dashboard() {
         </div>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {journeys.map((journey) => (
-            <JourneyCard key={journey.id} journey={journey} />
+            <JourneyCard
+              key={journey.id}
+              journey={journey}
+              isActive={journey.id === activeId}
+              compact
+            />
           ))}
         </div>
       </section>

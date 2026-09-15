@@ -3,7 +3,7 @@ import { L, type LessonsByTitle } from "./types";
 type LanguageProfile = {
   name: string;
   writing: Array<[string, string]>;
-  vocabulary: Array<[string, string]>;
+  vocabulary: Array<[string, string, string?]>;
   greetings: Array<[string, string]>;
   sentences: Array<[string, string]>;
   grammar: Array<[string, string]>;
@@ -50,6 +50,11 @@ function buildLanguageLessons(profile: LanguageProfile): LessonsByTitle {
         p("What should come before new words?", "Recalling yesterday's words", "A harder word list", "Skipping review", "A new subject"),
       ],
       `Choose ten ${profile.name} words you would use today. Put each in a short phrase and say it aloud.`,
+      profile.vocabulary.map(([term, meaning, reading]) => ({
+        term,
+        meaning,
+        ...(reading ? { reading } : {}),
+      })),
     ),
     "learn basic greetings": L(
       [
@@ -258,9 +263,11 @@ const japaneseProfile: LanguageProfile = {
     ["ん", "The Japanese hiragana n sound."],
   ],
   vocabulary: [
-    ["みず · ありがとう · はい · いいえ", "Water, thank you, yes, and no."],
-    ["おはよう · おねがいします", "Good morning and please."],
-    ["きょう は べんきょうします。", "I study today."],
+    ["水", "Water", "みず · mizu"],
+    ["ありがとう", "Thank you", "arigatou"],
+    ["はい", "Yes", "hai"],
+    ["いいえ", "No", "iie"],
+    ["おはよう", "Good morning", "ohayou"],
   ],
   greetings: [
     ["こんにちは", "Hello / good afternoon."],

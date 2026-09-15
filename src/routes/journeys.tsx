@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSyncExternalStore } from "react";
 import { Plus } from "lucide-react";
 import { AppShell } from "@/components/lifecraft/AppShell";
 import { JourneyCard } from "@/components/lifecraft/JourneyCard";
 import { Button } from "@/components/ui/button";
+import { journeyStore } from "@/lib/journey/journeyStore";
 import { useJourneys } from "@/lib/journey/useJourneys";
 
 export const Route = createFileRoute("/journeys")({
@@ -25,6 +27,11 @@ export const Route = createFileRoute("/journeys")({
 
 function Journeys() {
   const journeys = useJourneys();
+  const activeId = useSyncExternalStore(
+    journeyStore.subscribe,
+    journeyStore.getActiveId,
+    () => null,
+  );
 
   return (
     <AppShell>
@@ -44,16 +51,18 @@ function Journeys() {
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {journeys.map((journey) => (
-          <JourneyCard key={journey.id} journey={journey} />
+          <JourneyCard key={journey.id} journey={journey} isActive={journey.id === activeId} />
         ))}
       </div>
 
-      <section className="surface-panel mt-6 p-6 text-center">
-        <h2 className="text-base font-semibold">Room for one more intention</h2>
-        <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+      <section className="surface-panel mt-6 flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div>
+          <h2 className="text-base font-semibold">Room for one more intention</h2>
+          <p className="mt-1 max-w-xl text-sm text-muted-foreground">
           Describe a goal in plain words and LIFECRAFT will shape the journey around it.
-        </p>
-        <Button asChild className="mt-5">
+          </p>
+        </div>
+        <Button asChild className="shrink-0">
           <Link to="/create">Create a journey</Link>
         </Button>
       </section>

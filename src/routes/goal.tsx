@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/lifecraft/AppShell";
 import { MilestoneSection } from "@/components/lifecraft/MilestoneSection";
@@ -97,6 +97,10 @@ function GoalDetails() {
   const { id } = Route.useSearch();
   const journey = useJourney(id);
 
+  useEffect(() => {
+    if (journey) journeyStore.setActiveId(journey.id);
+  }, [journey?.id]);
+
   if (!journey) {
     const journeyMissing = Boolean(id);
     return (
@@ -168,6 +172,7 @@ function GoalDetails() {
               key={phase.id}
               phase={phase}
               journeyId={journey.id}
+              nextTaskId={nextMove?.taskId}
               onToggleTask={(task) => journeyStore.toggleTask(journey.id, task.id)}
             />
           ))}

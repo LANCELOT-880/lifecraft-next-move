@@ -1,342 +1,291 @@
-# LIFECRAFT: Next Move
+# LIFECRAFT: A Goal and Personal Progress Management System
 
-Build a polished responsive web application called LIFECRAFT.
+**LIFECRAFT** is an AI-powered goal and personal progress management web application that helps users turn broad intentions into structured journeys, phases, tasks, lessons, rewards, and an actionable **Next Move**.
 
-Product tagline:
+> **Tagline:** Turn intentions into your next move.
 
-"Turn intentions into your next move."
+## Live Application
 
-LIFECRAFT is an AI-powered goal planning and next-action recommendation platform. It helps users turn vague goals into structured journeys, milestones and actionable next steps.
+**Production:**  
+https://lifecraft-next-move.vercel.app
 
-IMPORTANT:
+## Project Overview
 
-For this first version, build ONLY the frontend UI with realistic mock/sample data.
+LIFECRAFT is designed to help users move from vague goals to clear, manageable actions.
 
-Do NOT add authentication, Supabase, database connections, external APIs, AI APIs, payments, or backend functionality yet.
+Instead of manually creating every milestone and task, users can describe what they want to accomplish and LIFECRAFT generates a personalized learning journey using the Gemini API.
 
-All buttons and interactions should work using local mock data where practical.
+Examples include:
 
-DESIGN DIRECTION:
+- Learn drawing
+- Learn quantum physics
+- Learn C++ programming
+- Learn biology
+- Learn photography
+- Learn pottery
+- Learn blacksmithing
+- Learn Japanese
+- Learn game development
 
-Create a premium, modern, dark productivity application with a subtle futuristic/game-inspired feeling.
+Each generated journey contains structured phases, practical tasks, lesson content, success criteria, learning resources, progress tracking, and an adaptive next action.
 
-The design should feel original and professional, not like a generic AI-generated dashboard.
+## Main Features
 
-Use:
+### AI-Generated Journeys
 
-- Near-black background
+Users can enter a goal in plain language and LIFECRAFT generates a structured beginner-friendly roadmap.
 
-- Dark charcoal surfaces
+Each generated journey contains:
 
-- White and soft-gray typography
+- Journey title and description
+- 4–6 learning phases
+- Subject-specific tasks
+- Estimated task duration
+- Difficulty level
+- Impact level
+- Lesson overview
+- Learning points
+- Practical exercises
+- Step-by-step instructions
+- Success criteria
+- Reflection prompts
+- Learning resource search links
 
-- One restrained blue/violet accent
+AI generation is powered by **Google Gemini 3.6 Flash** through a server-side API integration.
 
-- Clean modern typography
+### Adaptive Next Move
 
-- Generous spacing
+LIFECRAFT recommends one actionable task based on:
 
-- Medium rounded corners
+- Current active phase
+- Incomplete tasks
+- Available daily time
+- Task impact
+- Task difficulty
 
-- Subtle borders
+The system prioritizes useful, achievable tasks rather than simply showing the next item in a static list.
 
-- Very subtle gradients only where useful
+### Journey Management
 
-- Smooth micro-interactions
+Users can:
 
-- Minimal icons
+- Create AI-generated journeys
+- View all journeys
+- Track progress
+- Open individual phases and tasks
+- Change daily time budget
+- Set a target date
+- Delete journeys
+- Switch between active journeys
 
-- Excellent responsive behavior on mobile, tablet and desktop
+### Task Lessons
 
-Avoid:
+Generated tasks can include:
 
-- Excessive glassmorphism
+- Overview
+- What to learn
+- Practical exercise
+- Steps
+- Success criteria
+- Reflection
+- External learning-resource searches
 
-- Excessive neon
+### Progress Tracking
 
-- Huge gradients
+LIFECRAFT automatically calculates:
 
-- Cartoon/game-like visuals
+- Completed tasks
+- Phase progress
+- Overall journey progress
+- Current phase
+- Next task
 
-- Generic purple AI dashboards
+### XP and Gems
 
-- Excessive rounded pill components
+Completing tasks rewards users with:
 
-- Unnecessary charts
+- XP
+- Gems
 
-CORE NAVIGATION:
+XP contributes toward level progression.
 
-Desktop:
+The rewards system includes:
 
-- LIFECRAFT logo
+- Current XP
+- Level progression
+- XP required for the next level
+- Gem balance
+- Reward history
 
-- Dashboard
+### Daily Reminder
 
-- My Journeys
+Users can enable a configurable daily Next Move reminder.
 
-- Next Move
+The current implementation provides an in-app reminder when LIFECRAFT is open.
 
-- Settings
+### Persistent Data
 
-- User profile
+Journey progress, settings, rewards, lessons, and active-journey state are stored using browser `localStorage`.
 
-Mobile:
+This means progress remains available after refreshing or reopening the application in the same browser.
 
-Use a compact responsive navigation/bottom navigation.
+### Responsive Interface
 
-PAGES:
+LIFECRAFT is designed for:
 
-1. LANDING PAGE `/`
+- Desktop
+- Tablet
+- Mobile
 
-Create a strong product landing page.
+Desktop uses a sidebar navigation layout, while smaller screens use compact mobile navigation.
 
-Hero:
+## Pages
 
-"LIFECRAFT"
+### Landing Page
 
-"Turn intentions into your next move."
+`/`
 
-Supporting text:
+Introduces LIFECRAFT and demonstrates the Next Move concept.
 
-"Turn vague goals into clear journeys, meaningful progress and one actionable next step."
+### Dashboard
 
-Primary button:
+`/dashboard`
 
-"Start Your Journey"
+Displays:
 
-Include a visually impressive demonstration of the "Next Move" concept.
+- Current XP and level
+- Gem balance
+- Current Next Move
+- Active journeys
+- Journey progress
 
-Example:
+### My Journeys
 
-"Complete player movement"
+`/journeys`
 
-"25 minutes · High impact"
+Displays all user-created journeys with:
 
-Include a short 3-step explanation:
+- Progress
+- Current phase
+- Next task
+- Daily time
+- Target date
+- Delete journey option
 
-1. Define your goal
+### Create Goal
 
-2. Build your journey
+`/create`
 
-3. Take your next move
+Allows users to enter:
 
-2. DASHBOARD `/dashboard`
-
-Create a realistic dashboard using mock data.
-
-Header:
-
-"Good evening, Sameer."
-
-"What are you building?"
-
-Show journey cards such as:
-
-Journey 1:
-
-"Learn Japanese"
-
-Description: "Build conversational Japanese skills."
-
-Progress: 68%
-
-12 / 18 milestones
-
-Journey 2:
-
-"Build a Game"
-
-Description: "Create and publish a complete game."
-
-Progress: 34%
-
-6 / 17 milestones
-
-Include a prominent "NEXT MOVE" section:
-
-"Complete player movement"
-
-"25 minutes · High impact"
-
-Button: "Start"
-
-Include a "Create New Goal" button.
-
-3. CREATE GOAL `/create`
-
-Create a clean goal creation interface.
-
-Heading:
-
-"What do you want to accomplish?"
-
-Large text input with example:
-
-"I want to learn Japanese..."
-
-Optional fields:
-
-- Why is this important?
-
-- Available daily time: 15 min / 30 min / 1 hour / Flexible
-
+- Goal
+- Reason / motivation
+- Available daily time
 - Target date
 
-Primary button:
+LIFECRAFT then generates a personalized roadmap using Gemini.
 
-"Create My Journey"
+### Roadmap
 
-For now, submitting can use mock behavior and navigate to the roadmap page.
+`/roadmap`
 
-4. ROADMAP `/roadmap`
+Displays the generated roadmap with phases and tasks.
 
-Create an AI-generated roadmap preview using mock data.
+### Journey Details
 
-Example:
+`/goal`
 
-"Learn Japanese"
+Shows:
 
-Show three phases:
-
-01 — FOUNDATIONS
-
-✓ Learn Hiragana
-
-✓ Learn Katakana
-
-✓ Basic greetings
-
-02 — BEGINNER
-
-✓ Basic grammar
-
-→ Learn 100 essential words
-
-○ Simple sentences
-
-03 — PRACTICE
-
-○ Listening
-
-○ Reading
-
-○ Conversation
-
-Include:
-
-"Edit Journey"
-
-"Start Journey"
-
-5. GOAL DETAILS `/goal`
-
-Create the detailed journey page.
-
-Show:
-
-- Goal title
-
+- Journey title
 - Description
-
 - Overall progress
-
-- Progress bar
-
-- Milestones
-
+- Next Move
+- Journey settings
+- Phases
 - Tasks
 
-- Completion states
+### Task Lesson
 
-Include the Next Move section prominently.
+`/task`
 
-6. NEXT MOVE `/next`
+Displays the detailed learning material generated for an individual task.
 
-This is the signature feature of LIFECRAFT.
+### Next Move
 
-Create a focused, visually impressive page.
+`/next`
 
-Large subtle lightning/arrow icon.
+Provides one focused recommended task based on the user's current journey and daily time budget.
 
-Heading:
+### Settings
 
-"YOUR NEXT MOVE"
+`/settings`
 
-Recommended task:
+Allows users to manage:
 
-"Learn 20 vocabulary words"
+- Profile name
+- Reminder status
+- Reminder time
 
-Show:
+Also displays XP, level, Gems, and reward history.
 
-"Japanese Journey"
+## Technology Stack
 
-"20 minutes"
+### Frontend
 
-"Easy"
+- React 19
+- TypeScript
+- TanStack React Router
+- TanStack Start
+- Tailwind CSS
+- Lucide React
+- Sonner
 
-"High impact"
+### Server / Application Layer
 
-Section:
+- TanStack Start Server Functions
+- Gemini Interactions API
+- Zod validation
 
-"Why this?"
+### AI
 
-"Completing this task moves you closer to your current milestone."
+- Google Gemini API
+- Model: `gemini-3.6-flash`
 
-Primary button:
+The Gemini API key is used only on the server and is not exposed to client-side code.
 
-"Start Task"
+### Persistence
 
-Do not make this page look like a chatbot.
+- Browser localStorage
 
-COMPONENTS:
+### Deployment
 
-Create reusable components for:
+- Vercel
 
-- Sidebar/navigation
+### Version Control
 
-- Mobile navigation
+- Git
+- GitHub
 
-- Journey cards
+## AI Journey Generation Architecture
 
-- Progress bars
+The journey-generation flow is:
 
-- Milestone sections
-
-- Task rows
-
-- Next Move card
-
-- Buttons
-
-- Input fields
-
-- Empty states
-
-- Toast/feedback messages
-
-Use mock data in a clean structure so it can later be replaced with Supabase data.
-
-ACCESSIBILITY:
-
-Use semantic HTML, readable contrast, keyboard-friendly controls, clear focus states and accessible labels.
-
-RESPONSIVENESS:
-
-The entire application must work beautifully on a phone screen as well as desktop.
-
-MOST IMPORTANT:
-
-The application should feel like a real product that could eventually be launched publicly, not a college CRUD project.
-
-Do not add unnecessary features beyond the pages and functionality specified above.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
-```
+```text
+User enters a goal
+        ↓
+Create Goal page
+        ↓
+TanStack Server Function
+        ↓
+Gemini Interactions API
+        ↓
+Structured JSON response
+        ↓
+Zod validation
+        ↓
+Journey conversion
+        ↓
+localStorage persistence
+        ↓
+Roadmap / Task / Next Move UI

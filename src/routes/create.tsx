@@ -60,21 +60,18 @@ function CreateGoal() {
       toast.success("Your journey is ready.");
       await navigate({ to: "/roadmap", search: { id: journey.id } });
     } catch (caught) {
-        const message =
-          caught instanceof Error
-            ? caught.message
-            : "AI journey generation failed. Please try again.";
-
-        const userMessage = message.includes("not configured")
+      const message = caught instanceof Error ? caught.message : "AI journey generation failed.";
+      setError(
+        message.includes("not configured")
           ? "AI journey generation is not configured on the server."
-          : message;
-
-        setError(userMessage);
-
-        toast.error("Could not create your journey", {
-          description: userMessage,
-        });
-      } finally {
+          : "AI journey generation failed. Please try again.",
+      );
+      toast.error("Could not create your journey", {
+        description: message.includes("not configured")
+          ? "AI journey generation is not configured."
+          : "Please try again in a moment.",
+      });
+    } finally {
       setIsGenerating(false);
     }
   };
@@ -163,14 +160,22 @@ function CreateGoal() {
             </div>
           </div>
 
-          <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={isGenerating}>
-            {isGenerating ? "Building your journey..." : "Create My Journey"}
-          </Button>
-          {isGenerating ? (
-            <p className="text-sm text-muted-foreground">
-              LIFECRAFT is building your personalized roadmap. This may take a few seconds.
-            </p>
-          ) : null}
+          <div className="space-y-2">
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full sm:w-auto"
+              disabled={isGenerating}
+            >
+              {isGenerating ? "Building your journey..." : "Create My Journey"}
+            </Button>
+
+            {isGenerating ? (
+              <p className="text-sm text-muted-foreground">
+                LIFECRAFT is building your personalized roadmap. This may take a few seconds.
+              </p>
+            ) : null}
+</div>
         </form>
       </div>
     </AppShell>

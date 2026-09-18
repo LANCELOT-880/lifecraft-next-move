@@ -220,6 +220,14 @@ export const generateJourney = createServerFn({ method: "POST" })
     const requestUrl = "https://generativelanguage.googleapis.com/v1beta/interactions";
     if (!apiKey) throw new Error("AI journey generation is not configured.");
 
+    console.log("Gemini model:", model);
+    console.log("Gemini request URL:", requestUrl);
+    console.log("Gemini request keys:", ["model", "input", "response_format"]);
+    console.log("Gemini response_format structure:", {
+      type: "text",
+      mime_type: "application/json",
+      schema: "generatedJourneyJsonSchema",
+    });
     let response: Response;
     try {
       response = await fetch(requestUrl, {
@@ -248,30 +256,19 @@ export const generateJourney = createServerFn({ method: "POST" })
       throw new Error("AI journey generation failed. Please try again.");
     }
 
+    console.log("Gemini HTTP status:", response.status);
     if (!response.ok) {
       const errorBody = await response.text();
       console.error("Gemini error body:", errorBody);
-
-      if (response.status === 429) {
-        throw new Error("AI service is busy. Please try again shortly.");
-      }
-
-      if (response.status === 500 || response.status === 503) {
-        throw new Error(
-          "AI service is temporarily unavailable. Please try again in a moment.",
-        );
-      }
-
-      if (response.status === 400) {
-        throw new Error("AI request could not be processed. Please try again.");
-      }
-
       throw new Error("AI journey generation failed. Please try again.");
     }
 
     let payload: unknown;
     try {
       payload = await response.json();
+      if (payload && typeof payload === "object") {
+        console.log("Gemini response keys:", Object.keys(payload));
+      }
     } catch {
       throw new Error("AI journey generation returned an invalid response. Please try again.");
     }

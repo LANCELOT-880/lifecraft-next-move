@@ -487,6 +487,35 @@ export const journeyStore = {
     journeyStore.setActiveId(journey.id);
     return journey;
   },
+  deleteJourney(journeyId: string): boolean {
+    const journeys = journeyStore.getSnapshot();
+
+    if (!journeys.some((journey) => journey.id === journeyId)) {
+      return false;
+    }
+
+    const remaining = journeys.filter((journey) => journey.id !== journeyId);
+    const activeId = journeyStore.getActiveId();
+
+    journeyStore.setAll(remaining);
+
+    if (activeId === journeyId) {
+        const nextJourney = remaining[0];
+
+        if (nextJourney) {
+          journeyStore.setActiveId(nextJourney.id);
+        } else if (isBrowser()) {
+          try {
+            window.localStorage.removeItem(ACTIVE_KEY);
+          } catch {
+            /* ignore */
+          }
+          emit();
+        }
+      }
+
+    return true;
+  },
   updateDailyTime(journeyId: string, dailyTime: string): boolean {
     return journeyStore.updateJourneySettings(journeyId, { dailyTime });
   },

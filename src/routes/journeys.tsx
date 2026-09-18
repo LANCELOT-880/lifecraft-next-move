@@ -49,23 +49,38 @@ function Journeys() {
         </Button>
       </header>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        {journeys.map((journey) => (
-          <JourneyCard key={journey.id} journey={journey} isActive={journey.id === activeId} />
-        ))}
-      </div>
+      {journeys.length > 0 ? (
+        <>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            {journeys.map((journey) => (
+              <JourneyCard key={journey.id} journey={journey} isActive={journey.id === activeId} />
+            ))}
+          </div>
 
-      <section className="surface-panel mt-6 flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-        <div>
-          <h2 className="text-base font-semibold">Room for one more intention</h2>
-          <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-          Describe a goal in plain words and LIFECRAFT will shape the journey around it.
+          <section className="surface-panel mt-6 flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <div>
+              <h2 className="text-base font-semibold">Room for one more intention</h2>
+              <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+                Describe a goal in plain words and LIFECRAFT will shape the journey around it.
+              </p>
+            </div>
+            <Button asChild className="shrink-0">
+              <Link to="/create">Create a journey</Link>
+            </Button>
+          </section>
+        </>
+      ) : (
+        <section className="surface-panel mt-8 p-6 sm:p-8">
+          <h2 className="text-xl font-semibold">Your first journey starts here</h2>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
+            Describe a goal in plain words and LIFECRAFT will shape it into a clear path with a next
+            move.
           </p>
-        </div>
-        <Button asChild className="shrink-0">
-          <Link to="/create">Create a journey</Link>
-        </Button>
-      </section>
+          <Button asChild className="mt-6">
+            <Link to="/create">Create your first journey</Link>
+          </Button>
+        </section>
+      )}
     </AppShell>
   );
 }

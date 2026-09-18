@@ -14,6 +14,20 @@ export type { Resource, ResourceType } from "./types";
  * No match means the step has no resources and the section is hidden.
  */
 export function getResources(task: Task, journey: Journey): Resource[] {
+  if (task.lesson?.resourceQueries.length) {
+    return task.lesson.resourceQueries.map((resource, index) => ({
+      id: `${task.id}-search-${index + 1}`,
+      type: resource.type === "video" ? "video" : "article",
+      title: resource.title,
+      description: `Search result for: ${resource.query}`,
+      url:
+        resource.type === "video"
+          ? `https://www.youtube.com/results?search_query=${encodeURIComponent(resource.query)}`
+          : `https://www.google.com/search?q=${encodeURIComponent(resource.query)}`,
+      isSearchResult: true,
+    }));
+  }
+
   if (journey.isDemo) {
     const byId = demoTaskResources[task.id];
     if (byId?.length) return byId;

@@ -61,7 +61,11 @@ function Dashboard() {
       <RewardsSummary className="mt-7" />
 
       <div className="mt-5">
-        <NextMoveCard move={nextMove} variant="hero" />
+        <NextMoveCard
+          move={nextMove}
+          variant="hero"
+          emptyState={journeys.length === 0 ? "no-journey" : "completed"}
+        />
       </div>
 
       <section className="mt-12" aria-labelledby="journeys-heading">
@@ -78,16 +82,28 @@ function Dashboard() {
             View all
           </Link>
         </div>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          {journeys.map((journey) => (
-            <JourneyCard
-              key={journey.id}
-              journey={journey}
-              isActive={journey.id === activeId}
-              compact
-            />
-          ))}
-        </div>
+        {journeys.length > 0 ? (
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {journeys.map((journey) => (
+              <JourneyCard
+                key={journey.id}
+                journey={journey}
+                isActive={journey.id === activeId}
+                compact
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="surface-panel mt-4 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <p className="max-w-xl text-sm text-muted-foreground">
+              Start with a goal and LIFECRAFT will shape it into a journey you can move through one
+              step at a time.
+            </p>
+            <Button asChild className="shrink-0">
+              <Link to="/create">Create your first journey</Link>
+            </Button>
+          </div>
+        )}
       </section>
     </AppShell>
   );

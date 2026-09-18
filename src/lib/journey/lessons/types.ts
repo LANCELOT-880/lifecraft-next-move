@@ -22,6 +22,7 @@ export interface PracticeQuestion {
 }
 
 export interface Lesson {
+  overview?: string;
   /** Short beginner-friendly explanation, one paragraph per entry. */
   learn: string[];
   examples: LessonExample[];
@@ -29,6 +30,10 @@ export interface Lesson {
   practice: PracticeQuestion[];
   /** Small completion exercise the learner does before finishing. */
   exercise: string;
+  steps?: string[];
+  successCriteria?: string[];
+  reflection?: string;
+  resourceQueries?: import("../types").ResourceQuery[];
 }
 
 /** Compact authoring helper so each step can own a full, distinct lesson. */

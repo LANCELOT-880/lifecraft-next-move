@@ -6,9 +6,11 @@ import type { NextMove } from "@/lib/journey/types";
 export function NextMoveCard({
   move,
   variant = "panel",
+  emptyState = "completed",
 }: {
   move: NextMove | null;
   variant?: "panel" | "hero";
+  emptyState?: "completed" | "no-journey";
 }) {
   return (
     <section
@@ -41,7 +43,7 @@ export function NextMoveCard({
             variant === "hero" ? "text-2xl sm:text-3xl" : "text-xl sm:text-2xl"
           }`}
         >
-          {move ? move.task : "Every task is complete."}
+          {move ? move.task : emptyState === "no-journey" ? "No journey yet" : "Every task is complete."}
         </h3>
 
         {move ? (
@@ -79,7 +81,9 @@ export function NextMoveCard({
           </>
         ) : (
           <p className="mt-2 text-sm text-muted-foreground">
-            Create a new goal to keep the momentum going.
+            {emptyState === "no-journey"
+              ? "Create a journey and LIFECRAFT will help you decide what to do next."
+              : "Create a new goal to keep the momentum going."}
           </p>
         )}
 
@@ -96,7 +100,7 @@ export function NextMoveCard({
             </Button>
           ) : (
             <Button asChild className="w-full shrink-0 sm:w-auto">
-              <Link to="/create">New goal</Link>
+              <Link to="/create">{emptyState === "no-journey" ? "Create your first journey" : "New goal"}</Link>
             </Button>
           )}
         </div>

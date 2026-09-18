@@ -77,16 +77,16 @@ function Landing() {
                   <p className="text-eyebrow text-primary">Next move</p>
                 </div>
                 <p className="mt-5 font-display text-2xl font-semibold sm:text-3xl">
-                  Complete player movement
+                  Practice basic shapes
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">25 minutes · High impact</p>
 
                 <div className="mt-7 space-y-2 border-t border-border pt-5">
                   {[
-                    { label: "Learn Hiragana", state: "done" },
-                    { label: "Lock the core concept", state: "done" },
-                    { label: "Complete player movement", state: "current" },
-                    { label: "Block out first level", state: "todo" },
+                    { label: "Learn line control", state: "done" },
+                    { label: "Draw circles and boxes", state: "done" },
+                    { label: "Practice basic shapes", state: "current" },
+                    { label: "Sketch a simple object", state: "todo" },
                   ].map((row) => (
                     <div key={row.label} className="flex items-center gap-3">
                       <span

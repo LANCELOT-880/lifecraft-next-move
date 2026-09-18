@@ -1,9 +1,11 @@
 import { analyzeGoal, cleanGoalTitle, detectTargetLanguage } from "./analyzer";
 import { demoJourneys } from "./demo";
+import type { GeneratedJourneyResponse } from "./generateJourney";
 import { awardForCompletedTask, type TaskCompletionResult } from "./rewards";
 import { journeyTemplates } from "./templates";
 import {
   categoryLabels,
+  type GeneratedLesson,
   type GoalInput,
   type Journey,
   type NextMove,
@@ -44,6 +46,7 @@ function normalizeTask(value: unknown): Task | null {
   const title = isRecord(value) ? value["title"] : undefined;
   if (!isRecord(value) || typeof id !== "string" || typeof title !== "string") return null;
 
+  const lesson = normalizeGeneratedLesson(isRecord(value) ? value["lesson"] : undefined);
   return {
     ...value,
     id,
@@ -58,7 +61,58 @@ function normalizeTask(value: unknown): Task | null {
       value["impact"] === "Low impact" || value["impact"] === "High impact"
         ? value["impact"]
         : "Medium impact",
+    ...(lesson ? { lesson } : {}),
   } as Task;
+}
+
+function normalizeGeneratedLesson(value: unknown): GeneratedLesson | null {
+  if (!isRecord(value)) return null;
+  const overview = value["overview"];
+  const learn = value["learn"];
+  const exercise = value["exercise"];
+  const steps = value["steps"];
+  const successCriteria = value["successCriteria"];
+  const resourceQueries = value["resourceQueries"];
+  if (
+    typeof overview !== "string" ||
+    !Array.isArray(learn) ||
+    !Array.isArray(steps) ||
+    !Array.isArray(successCriteria) ||
+    typeof exercise !== "string" ||
+    !Array.isArray(resourceQueries)
+  ) {
+    return null;
+  }
+
+  const strings = (items: unknown[], max: number) =>
+    items.filter((item): item is string => typeof item === "string" && item.trim().length > 0).slice(0, max);
+  const queries = resourceQueries
+    .filter((query): query is Record<string, unknown> => isRecord(query))
+    .map((query) => ({
+      title: query["title"],
+      query: query["query"],
+      type: query["type"],
+    }))
+    .filter(
+      (query): query is GeneratedLesson["resourceQueries"][number] =>
+        typeof query.title === "string" &&
+        typeof query.query === "string" &&
+        (query.type === "web" || query.type === "video"),
+    )
+    .slice(0, 4);
+  if (strings(learn, 8).length === 0 || strings(steps, 8).length === 0 || strings(successCriteria, 8).length === 0) {
+    return null;
+  }
+
+  return {
+    overview: overview.slice(0, 800),
+    learn: strings(learn, 8),
+    exercise: exercise.slice(0, 1000),
+    steps: strings(steps, 8),
+    successCriteria: strings(successCriteria, 8),
+    ...(typeof value["reflection"] === "string" ? { reflection: value["reflection"].slice(0, 500) } : {}),
+    resourceQueries: queries,
+  };
 }
 
 function normalizePhase(value: unknown, index: number): Phase | null {
@@ -246,6 +300,45 @@ export function buildJourney(input: GoalInput): Journey {
   };
 }
 
+export function buildGeneratedJourney(input: GoalInput, generated: GeneratedJourneyResponse): Journey {
+  const id = uid("journey");
+  return {
+    id,
+    title: generated.title,
+    description: generated.description,
+    category: "general",
+    categoryLabel: generated.categoryLabel,
+    why: input.why.trim(),
+    progress: 0,
+    dailyTime: input.dailyTime,
+    targetDate: input.targetDate,
+    createdAt: new Date().toISOString(),
+    phases: generated.phases.map((phase, phaseIndex) => ({
+      id: `${id}-p${phaseIndex + 1}`,
+      title: phase.title,
+      order: phaseIndex + 1,
+      summary: phase.summary,
+      tasks: phase.tasks.map((task, taskIndex) => ({
+        id: `${id}-p${phaseIndex + 1}-t${taskIndex + 1}`,
+        title: task.title,
+        completed: false,
+        estimatedMinutes: Math.min(120, Math.max(10, Math.round(task.estimatedMinutes))),
+        difficulty: task.difficulty,
+        impact: task.impact,
+        lesson: {
+          overview: task.lesson.overview,
+          learn: task.lesson.learn,
+          exercise: task.lesson.exercise,
+          steps: task.lesson.steps,
+          successCriteria: task.lesson.successCriteria,
+          resourceQueries: task.lesson.resourceQueries,
+          ...(task.lesson.reflection ? { reflection: task.lesson.reflection } : {}),
+        },
+      })),
+    })),
+  };
+}
+
 /* ---------- persistence ---------- */
 
 function isBrowser(): boolean {
@@ -253,7 +346,7 @@ function isBrowser(): boolean {
 }
 
 function read(): Journey[] {
-  if (!isBrowser()) return DEMO_JOURNEYS;
+  if (!isBrowser()) return [];
   try {
     const raw = window.localStorage.getItem(JOURNEYS_KEY);
     const parsed: unknown = raw ? JSON.parse(raw) : [];
@@ -270,10 +363,9 @@ function read(): Journey[] {
     if (raw && Array.isArray(parsed) && JSON.stringify(parsed) !== JSON.stringify(saved)) {
       write(saved);
     }
-    const missingDemos = DEMO_JOURNEYS.filter((demo) => !saved.some((j) => j.id === demo.id));
-    return [...missingDemos, ...saved];
+    return saved;
   } catch {
-    return DEMO_JOURNEYS;
+    return [];
   }
 }
 
@@ -373,7 +465,7 @@ export const journeyStore = {
     return cache;
   },
   getServerSnapshot(): Journey[] {
-    return DEMO_JOURNEYS;
+    return [];
   },
   setAll(list: Journey[]) {
     const normalized = list
@@ -385,6 +477,12 @@ export const journeyStore = {
   },
   create(input: GoalInput): Journey {
     const journey = buildJourney(input);
+    journeyStore.setAll([journey, ...journeyStore.getSnapshot()]);
+    journeyStore.setActiveId(journey.id);
+    return journey;
+  },
+  createGenerated(input: GoalInput, generated: GeneratedJourneyResponse): Journey {
+    const journey = buildGeneratedJourney(input, generated);
     journeyStore.setAll([journey, ...journeyStore.getSnapshot()]);
     journeyStore.setActiveId(journey.id);
     return journey;
@@ -425,7 +523,12 @@ export const journeyStore = {
   getActiveId(): string | null {
     if (!isBrowser()) return null;
     try {
-      return window.localStorage.getItem(ACTIVE_KEY);
+      const activeId = window.localStorage.getItem(ACTIVE_KEY);
+      if (!activeId || !journeyStore.getSnapshot().some((journey) => journey.id === activeId)) {
+        window.localStorage.removeItem(ACTIVE_KEY);
+        return null;
+      }
+      return activeId;
     } catch {
       return null;
     }

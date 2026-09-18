@@ -140,6 +140,15 @@ function TaskLesson() {
         </>
       ) : (
         <>
+      {lesson.overview ? (
+        <section className="surface-panel mt-6 p-5 sm:p-6" aria-labelledby="overview-heading">
+          <h2 id="overview-heading" className="text-eyebrow text-muted-foreground">
+            Overview
+          </h2>
+          <p className="mt-4 text-sm leading-relaxed text-foreground/90">{lesson.overview}</p>
+        </section>
+      ) : null}
+
       <section className="surface-panel mt-6 p-5 sm:p-6" aria-labelledby="learn-heading">
         <h2 id="learn-heading" className="text-eyebrow text-muted-foreground">
           Learn
@@ -153,29 +162,59 @@ function TaskLesson() {
         </div>
       </section>
 
+      {lesson.steps?.length ? (
+        <section className="surface-panel mt-4 p-5 sm:p-6" aria-labelledby="steps-heading">
+          <h2 id="steps-heading" className="text-eyebrow text-muted-foreground">
+            Steps
+          </h2>
+          <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-foreground/90">
+            {lesson.steps.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
+
+      {lesson.successCriteria?.length ? (
+        <section className="surface-panel mt-4 p-5 sm:p-6" aria-labelledby="success-heading">
+          <h2 id="success-heading" className="text-eyebrow text-muted-foreground">
+            Success criteria
+          </h2>
+          <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-foreground/90">
+            {lesson.successCriteria.map((criterion) => (
+              <li key={criterion}>{criterion}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {lesson.vocabulary?.length ? (
         <VocabularyList entries={lesson.vocabulary} />
       ) : null}
 
-      <section className="surface-panel mt-4 p-5 sm:p-6" aria-labelledby="examples-heading">
-        <h2 id="examples-heading" className="text-eyebrow text-muted-foreground">
-          Examples
-        </h2>
-        <ul className="mt-4 space-y-3">
-          {lesson.examples.map((example) => (
-            <li key={example.text} className="rounded-lg border border-border bg-surface-2/60 p-3">
-              <p className="whitespace-pre-wrap break-words font-mono text-sm text-foreground">
-                {example.text}
-              </p>
-              {example.meaning ? (
-                <p className="mt-1.5 text-xs text-muted-foreground">{example.meaning}</p>
-              ) : null}
-            </li>
-          ))}
-        </ul>
-      </section>
+      {lesson.examples.length > 0 ? (
+        <section className="surface-panel mt-4 p-5 sm:p-6" aria-labelledby="examples-heading">
+          <h2 id="examples-heading" className="text-eyebrow text-muted-foreground">
+            Examples
+          </h2>
+          <ul className="mt-4 space-y-3">
+            {lesson.examples.map((example) => (
+              <li key={example.text} className="rounded-lg border border-border bg-surface-2/60 p-3">
+                <p className="whitespace-pre-wrap break-words font-mono text-sm text-foreground">
+                  {example.text}
+                </p>
+                {example.meaning ? (
+                  <p className="mt-1.5 text-xs text-muted-foreground">{example.meaning}</p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
-      <PracticeSection key={task.id} lesson={lesson} taskId={task.id} taskTitle={task.title} />
+      {lesson.practice.length > 0 ? (
+        <PracticeSection key={task.id} lesson={lesson} taskId={task.id} taskTitle={task.title} />
+      ) : null}
 
       <section className="surface-panel mt-4 p-5 sm:p-6" aria-labelledby="exercise-heading">
         <h2 id="exercise-heading" className="text-eyebrow text-muted-foreground">
@@ -183,6 +222,12 @@ function TaskLesson() {
         </h2>
         <p className="mt-4 text-sm leading-relaxed text-foreground/90">{lesson.exercise}</p>
       </section>
+
+        {lesson.reflection ? (
+          <p className="mt-4 rounded-lg border border-border bg-surface-2/60 px-4 py-3 text-sm text-muted-foreground">
+            Reflection: {lesson.reflection}
+          </p>
+        ) : null}
 
       <ResourceList resources={resources} />
 

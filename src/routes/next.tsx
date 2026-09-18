@@ -157,10 +157,12 @@ function NextMovePage() {
           ) : (
             <div className="mt-10">
               <p className="text-sm text-muted-foreground">
-                Every task in this journey is complete. Craft a new goal to keep moving.
+                {journey
+                  ? "Every task in this journey is complete. Craft a new goal to keep moving."
+                  : "Create a journey and LIFECRAFT will help you decide what to do next."}
               </p>
               <Button asChild size="lg" className="mt-6 w-full sm:w-auto">
-                <Link to="/create">Create a goal</Link>
+                <Link to="/create">{journey ? "Create a goal" : "Create your first journey"}</Link>
               </Button>
             </div>
           )}

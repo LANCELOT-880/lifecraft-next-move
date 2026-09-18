@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/lifecraft/AppShell";
@@ -7,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { journeyStore } from "@/lib/journey/journeyStore";
+import { generateJourney } from "@/lib/journey/generateJourney";
 
 export const Route = createFileRoute("/create")({
   head: () => ({
@@ -35,6 +37,47 @@ function CreateGoal() {
   const [daily, setDaily] = useState("30 min");
   const [targetDate, setTargetDate] = useState("");
   const [error, setError] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const generateJourneyFn = useServerFn(generateJourney);
+
+  const createJourney = async () => {
+    if (isGenerating) return;
+    if (!goal.trim()) {
+      setError("Describe your goal before creating a journey.");
+      return;
+    }
+
+    setError("");
+    setIsGenerating(true);
+    try {
+      const generated = await generateJourneyFn({
+        data: { goal, why, dailyTime: daily, targetDate },
+      });
+      const journey = journeyStore.createGenerated(
+        { goal, why, dailyTime: daily, targetDate },
+        generated,
+      );
+      toast.success("Your journey is ready.");
+      await navigate({ to: "/roadmap", search: { id: journey.id } });
+    } catch (caught) {
+        const message =
+          caught instanceof Error
+            ? caught.message
+            : "AI journey generation failed. Please try again.";
+
+        const userMessage = message.includes("not configured")
+          ? "AI journey generation is not configured on the server."
+          : message;
+
+        setError(userMessage);
+
+        toast.error("Could not create your journey", {
+          description: userMessage,
+        });
+      } finally {
+      setIsGenerating(false);
+    }
+  };
 
   return (
     <AppShell>
@@ -48,19 +91,7 @@ function CreateGoal() {
           className="mt-8 space-y-4"
           onSubmit={(e) => {
             e.preventDefault();
-            if (!goal.trim()) {
-              setError("Describe your goal before creating a journey.");
-              return;
-            }
-            setError("");
-            const journey = journeyStore.create({
-              goal,
-              why,
-              dailyTime: daily,
-              targetDate,
-            });
-            toast.success("Your journey is ready.");
-            navigate({ to: "/roadmap", search: { id: journey.id } });
+            void createJourney();
           }}
         >
           <div className="surface-panel p-5 sm:p-6">
@@ -132,9 +163,14 @@ function CreateGoal() {
             </div>
           </div>
 
-          <Button type="submit" size="lg" className="w-full sm:w-auto">
-            Create My Journey
+          <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={isGenerating}>
+            {isGenerating ? "Building your journey..." : "Create My Journey"}
           </Button>
+          {isGenerating ? (
+            <p className="text-sm text-muted-foreground">
+              LIFECRAFT is building your personalized roadmap. This may take a few seconds.
+            </p>
+          ) : null}
         </form>
       </div>
     </AppShell>

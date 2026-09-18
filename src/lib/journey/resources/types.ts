@@ -7,6 +7,13 @@ export interface Resource {
   description: string;
   url: string;
   isPremium?: boolean;
+  isSearchResult?: boolean;
+}
+
+export interface ResourceQuery {
+  title: string;
+  query: string;
+  type: "web" | "video";
 }
 
 export const resourceTypeLabels: Record<ResourceType, string> = {

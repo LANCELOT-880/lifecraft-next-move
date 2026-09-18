@@ -33,6 +33,20 @@ const lessonsByCategory: Record<JourneyCategory, LessonsByTitle> = {
  * explicit "unavailable" state rather than another task's content.
  */
 export function getLesson(task: Task, journey: Journey): Lesson | null {
+  if (task.lesson) {
+    return {
+      overview: task.lesson.overview,
+      learn: task.lesson.learn,
+      examples: [],
+      practice: [],
+      exercise: task.lesson.exercise,
+      steps: task.lesson.steps,
+      successCriteria: task.lesson.successCriteria,
+      ...(task.lesson.reflection ? { reflection: task.lesson.reflection } : {}),
+      resourceQueries: task.lesson.resourceQueries,
+    };
+  }
+
   if (journey.isDemo) {
     const byId = demoTaskLessons[task.id];
     if (byId) return byId;

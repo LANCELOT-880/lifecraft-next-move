@@ -14,6 +14,7 @@ export interface Task {
   /** Optional per-step overrides for the local reward system. */
   xpReward?: number;
   gemReward?: number;
+  lesson?: GeneratedLesson;
   /** Architectural foundation for a future LIFECRAFT Plus tier. Nothing is locked today. */
   isPremium?: boolean;
 }
@@ -40,6 +41,23 @@ export interface Journey {
   phases: Phase[];
   createdAt: string;
   isDemo?: boolean;
+  categoryLabel?: string;
+}
+
+export interface ResourceQuery {
+  title: string;
+  query: string;
+  type: "web" | "video";
+}
+
+export interface GeneratedLesson {
+  overview: string;
+  learn: string[];
+  exercise: string;
+  steps: string[];
+  successCriteria: string[];
+  reflection?: string;
+  resourceQueries: ResourceQuery[];
 }
 
 export interface NextMove {

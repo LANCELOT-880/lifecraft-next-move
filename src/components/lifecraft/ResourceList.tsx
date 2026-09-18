@@ -7,7 +7,7 @@ export function ResourceList({ resources }: { resources: Resource[] }) {
   return (
     <section className="surface-panel mt-4 p-5 sm:p-6" aria-labelledby="resources-heading">
       <h2 id="resources-heading" className="text-eyebrow text-muted-foreground">
-        Additional resources
+        Learning resources
       </h2>
       <ul className="mt-4 space-y-2">
         {resources.map((resource) => (
@@ -20,7 +20,7 @@ export function ResourceList({ resources }: { resources: Resource[] }) {
             >
               <span className="min-w-0">
                 <span className="text-[10px] uppercase tracking-[0.16em] text-primary">
-                  {resourceTypeLabels[resource.type]}
+                  {resource.isSearchResult ? "SEARCH RESULT" : resourceTypeLabels[resource.type]}
                 </span>
                 <span className="mt-1 block break-words text-sm text-foreground">
                   {resource.title}

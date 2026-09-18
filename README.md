@@ -458,7 +458,3 @@ Possible future improvements include:
 ## Author
 
 **Sameer Suresh Kahar**
-B.Sc. Computer Science
-
-```
-```

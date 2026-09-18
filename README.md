@@ -1,3 +1,4 @@
+````md
 # LIFECRAFT: A Goal and Personal Progress Management System
 
 **LIFECRAFT** is an AI-powered goal and personal progress management web application that helps users turn broad intentions into structured journeys, phases, tasks, lessons, rewards, and an actionable **Next Move**.
@@ -63,7 +64,7 @@ LIFECRAFT recommends one actionable task based on:
 - Task impact
 - Task difficulty
 
-The system prioritizes useful, achievable tasks rather than simply showing the next item in a static list.
+The system prioritizes useful, achievable tasks instead of simply showing the next item in a static list.
 
 ### Journey Management
 
@@ -179,7 +180,7 @@ Displays all user-created journeys with:
 Allows users to enter:
 
 - Goal
-- Reason / motivation
+- Reason or motivation
 - Available daily time
 - Target date
 
@@ -209,7 +210,7 @@ Shows:
 
 `/task`
 
-Displays the detailed learning material generated for an individual task.
+Displays detailed learning material generated for an individual task.
 
 ### Next Move
 
@@ -227,7 +228,7 @@ Allows users to manage:
 - Reminder status
 - Reminder time
 
-Also displays XP, level, Gems, and reward history.
+It also displays XP, level, Gems, and reward history.
 
 ## Technology Stack
 
@@ -289,3 +290,175 @@ Journey conversion
 localStorage persistence
         ↓
 Roadmap / Task / Next Move UI
+````
+
+The API key is stored using an environment variable:
+
+```env
+GEMINI_API_KEY=your_api_key
+```
+
+The key must never be committed to GitHub.
+
+## Local Setup
+
+### Requirements
+
+Install:
+
+* Node.js
+* npm
+* Git
+
+Clone the repository:
+
+```bash
+git clone https://github.com/LANCELOT-880/lifecraft-next-move.git
+```
+
+Move into the project directory:
+
+```bash
+cd lifecraft-next-move
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create a file named:
+
+```text
+.env.local
+```
+
+Add:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+Open the local URL shown in the terminal.
+
+## Production Environment
+
+For production deployment, add the following environment variable in Vercel:
+
+```text
+GEMINI_API_KEY
+```
+
+The application uses this environment variable on the server when generating journeys.
+
+## Validation
+
+The project can be checked using:
+
+```bash
+npx tsc --noEmit
+```
+
+```bash
+npm run build
+```
+
+```bash
+git diff --check
+```
+
+## Data Storage
+
+The current version uses browser localStorage.
+
+Important storage keys include:
+
+```text
+lifecraft.journeys.v1
+lifecraft.activeJourney.v1
+lifecraft.settings.v1
+lifecraft.rewards.v1
+lifecraft.reminder.v1
+```
+
+Because the current version uses localStorage:
+
+* Data remains on the same browser and device
+* No login is required
+* Data is not synchronized across devices
+
+Cloud synchronization can be added in a future version.
+
+## Error Handling
+
+The AI generation flow handles:
+
+* Invalid requests
+* Gemini API service errors
+* Rate limits
+* Temporary model unavailability
+* Invalid generated JSON
+* Incomplete generated curricula
+
+User-facing error messages are displayed without exposing API credentials.
+
+## Security
+
+The Gemini API key is stored server-side.
+
+`.env.local` is excluded from Git version control and should never be committed.
+
+The client application does not contain the API key.
+
+## Current Limitations
+
+The current academic version:
+
+* Uses localStorage instead of a cloud database
+* Does not include authentication
+* Does not synchronize between devices
+* Uses an in-app reminder rather than background push notifications
+* Depends on Gemini API availability and rate limits
+* Uses search links for AI-recommended resources rather than automatically trusting generated URLs
+
+## Future Scope
+
+Possible future improvements include:
+
+* User authentication
+* Cloud database
+* Cross-device synchronization
+* Push notifications
+* Journey sharing
+* Collaborative goals
+* Custom rewards
+* Advanced analytics
+* Improved mathematical equation rendering
+* Cached AI-generated curricula
+* Rate limiting for public users
+* AI-generated journey editing
+* Progress history and streaks
+* Mobile application version
+
+## Project Title
+
+**LIFECRAFT: A Goal and Personal Progress Management System**
+
+## Repository
+
+[https://github.com/LANCELOT-880/lifecraft-next-move](https://github.com/LANCELOT-880/lifecraft-next-move)
+
+## Author
+
+**Sameer Suresh Kahar**
+B.Sc. Computer Science
+
+```
+```

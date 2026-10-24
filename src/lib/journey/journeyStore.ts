@@ -3,6 +3,7 @@ import { demoJourneys } from "./demo";
 import type { GeneratedJourneyResponse } from "./generateJourney";
 import { awardForCompletedTask, type TaskCompletionResult } from "./rewards";
 import { journeyTemplates } from "./templates";
+import { getUserStorageKey, subscribeStorageUser } from "@/lib/storage/userStorage";
 import {
   categoryLabels,
   type GeneratedLesson,
@@ -85,7 +86,9 @@ function normalizeGeneratedLesson(value: unknown): GeneratedLesson | null {
   }
 
   const strings = (items: unknown[], max: number) =>
-    items.filter((item): item is string => typeof item === "string" && item.trim().length > 0).slice(0, max);
+    items
+      .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+      .slice(0, max);
   const queries = resourceQueries
     .filter((query): query is Record<string, unknown> => isRecord(query))
     .map((query) => ({
@@ -100,7 +103,11 @@ function normalizeGeneratedLesson(value: unknown): GeneratedLesson | null {
         (query.type === "web" || query.type === "video"),
     )
     .slice(0, 4);
-  if (strings(learn, 8).length === 0 || strings(steps, 8).length === 0 || strings(successCriteria, 8).length === 0) {
+  if (
+    strings(learn, 8).length === 0 ||
+    strings(steps, 8).length === 0 ||
+    strings(successCriteria, 8).length === 0
+  ) {
     return null;
   }
 
@@ -110,7 +117,9 @@ function normalizeGeneratedLesson(value: unknown): GeneratedLesson | null {
     exercise: exercise.slice(0, 1000),
     steps: strings(steps, 8),
     successCriteria: strings(successCriteria, 8),
-    ...(typeof value["reflection"] === "string" ? { reflection: value["reflection"].slice(0, 500) } : {}),
+    ...(typeof value["reflection"] === "string"
+      ? { reflection: value["reflection"].slice(0, 500) }
+      : {}),
     resourceQueries: queries,
   };
 }
@@ -213,7 +222,10 @@ function isBetterTask(candidate: Task, current: Task): boolean {
   return DIFFICULTY_RANK[candidate.difficulty] < DIFFICULTY_RANK[current.difficulty];
 }
 
-export function selectAdaptiveNextMove(journey: Journey, dailyTime = journey?.dailyTime): Task | null {
+export function selectAdaptiveNextMove(
+  journey: Journey,
+  dailyTime = journey?.dailyTime,
+): Task | null {
   if (!journey || !Array.isArray(journey.phases)) return null;
 
   for (const phase of journey.phases) {
@@ -232,10 +244,9 @@ export function selectAdaptiveNextMove(journey: Journey, dailyTime = journey?.da
         : incompleteTasks.filter((task) => task.estimatedMinutes <= budget);
     const bestTask = fittingTasks[0] ?? firstTask;
 
-    return fittingTasks.slice(1).reduce(
-      (best, task) => (isBetterTask(task, best) ? task : best),
-      bestTask,
-    );
+    return fittingTasks
+      .slice(1)
+      .reduce((best, task) => (isBetterTask(task, best) ? task : best), bestTask);
   }
 
   return null;
@@ -245,7 +256,9 @@ export function getNextMove(journey: Journey): NextMove | null {
   const task = selectAdaptiveNextMove(journey);
   if (!task) return null;
 
-  const phase = journey.phases.find((item) => item.tasks.some((candidate) => candidate.id === task.id));
+  const phase = journey.phases.find((item) =>
+    item.tasks.some((candidate) => candidate.id === task.id),
+  );
   if (!phase) return null;
 
   return {
@@ -300,7 +313,10 @@ export function buildJourney(input: GoalInput): Journey {
   };
 }
 
-export function buildGeneratedJourney(input: GoalInput, generated: GeneratedJourneyResponse): Journey {
+export function buildGeneratedJourney(
+  input: GoalInput,
+  generated: GeneratedJourneyResponse,
+): Journey {
   const id = uid("journey");
   return {
     id,
@@ -325,16 +341,22 @@ export function buildGeneratedJourney(input: GoalInput, generated: GeneratedJour
         estimatedMinutes: Math.min(120, Math.max(10, Math.round(task.estimatedMinutes))),
         difficulty: task.difficulty,
         impact: task.impact,
-        lesson: {
-          overview: task.lesson.overview,
-          learn: task.lesson.learn,
-          exercise: task.lesson.exercise,
-          steps: task.lesson.steps,
-          successCriteria: task.lesson.successCriteria,
-          resourceQueries: task.lesson.resourceQueries,
-          ...(task.lesson.reflection ? { reflection: task.lesson.reflection } : {}),
-        },
-      })),
+    ...(task.lesson
+      ? {
+          lesson: {
+            overview: task.lesson.overview,
+            learn: task.lesson.learn,
+            exercise: task.lesson.exercise,
+            steps: task.lesson.steps,
+            successCriteria: task.lesson.successCriteria,
+            resourceQueries: task.lesson.resourceQueries,
+            ...(task.lesson.reflection
+              ? { reflection: task.lesson.reflection }
+              : {}),
+          },
+        }
+      : {}),
+          })),
     })),
   };
 }
@@ -348,7 +370,7 @@ function isBrowser(): boolean {
 function read(): Journey[] {
   if (!isBrowser()) return [];
   try {
-    const raw = window.localStorage.getItem(JOURNEYS_KEY);
+    const raw = window.localStorage.getItem(getUserStorageKey(JOURNEYS_KEY));
     const parsed: unknown = raw ? JSON.parse(raw) : [];
     const saved = Array.isArray(parsed)
       ? parsed
@@ -372,7 +394,7 @@ function read(): Journey[] {
 function write(list: Journey[]) {
   if (!isBrowser()) return;
   try {
-    window.localStorage.setItem(JOURNEYS_KEY, JSON.stringify(list));
+    window.localStorage.setItem(getUserStorageKey(JOURNEYS_KEY), JSON.stringify(list));
   } catch {
     /* storage unavailable — keep in-memory state */
   }
@@ -384,6 +406,11 @@ const listeners = new Set<() => void>();
 function emit() {
   listeners.forEach((listener) => listener());
 }
+
+subscribeStorageUser(() => {
+  cache = null;
+  emit();
+});
 
 function completionResult(
   journey: Journey,
@@ -500,19 +527,19 @@ export const journeyStore = {
     journeyStore.setAll(remaining);
 
     if (activeId === journeyId) {
-        const nextJourney = remaining[0];
+      const nextJourney = remaining[0];
 
-        if (nextJourney) {
-          journeyStore.setActiveId(nextJourney.id);
-        } else if (isBrowser()) {
-          try {
-            window.localStorage.removeItem(ACTIVE_KEY);
-          } catch {
-            /* ignore */
-          }
-          emit();
+      if (nextJourney) {
+        journeyStore.setActiveId(nextJourney.id);
+      } else if (isBrowser()) {
+        try {
+          window.localStorage.removeItem(getUserStorageKey(ACTIVE_KEY));
+        } catch {
+          /* ignore */
         }
+        emit();
       }
+    }
 
     return true;
   },
@@ -549,12 +576,53 @@ export const journeyStore = {
   completeTask(journeyId: string, taskId: string): TaskCompletionResult {
     return updateTaskCompletion(journeyId, taskId, true);
   },
+
+  updateTaskLesson(
+  journeyId: string,
+  taskId: string,
+  lesson: GeneratedLesson,
+): boolean {
+  const normalizedLesson = normalizeGeneratedLesson(lesson);
+
+  if (!normalizedLesson) return false;
+
+  const journeys = journeyStore.getSnapshot();
+  let taskFound = false;
+
+  const updatedJourneys = journeys.map((journey) => {
+    if (journey.id !== journeyId) return journey;
+
+    return {
+      ...journey,
+      phases: journey.phases.map((phase) => ({
+        ...phase,
+        tasks: phase.tasks.map((task) => {
+          if (task.id !== taskId) return task;
+
+          taskFound = true;
+
+          return {
+            ...task,
+            lesson: normalizedLesson,
+          };
+        }),
+      })),
+    };
+  });
+
+  if (!taskFound) return false;
+
+  journeyStore.setAll(updatedJourneys);
+
+  return true;
+},
+
   getActiveId(): string | null {
     if (!isBrowser()) return null;
     try {
-      const activeId = window.localStorage.getItem(ACTIVE_KEY);
+      const activeId = window.localStorage.getItem(getUserStorageKey(ACTIVE_KEY));
       if (!activeId || !journeyStore.getSnapshot().some((journey) => journey.id === activeId)) {
-        window.localStorage.removeItem(ACTIVE_KEY);
+        window.localStorage.removeItem(getUserStorageKey(ACTIVE_KEY));
         return null;
       }
       return activeId;
@@ -565,7 +633,7 @@ export const journeyStore = {
   setActiveId(id: string) {
     if (!isBrowser()) return;
     try {
-      window.localStorage.setItem(ACTIVE_KEY, id);
+      window.localStorage.setItem(getUserStorageKey(ACTIVE_KEY), id);
     } catch {
       /* ignore */
     }

@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { AppShell } from "@/components/lifecraft/AppShell";
+import { requireAuthenticatedUser } from "@/lib/auth/redirect";
 import { MilestoneSection } from "@/components/lifecraft/MilestoneSection";
 import { ProgressMeter } from "@/components/lifecraft/ProgressMeter";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,9 @@ import { useJourney } from "@/lib/journey/useJourneys";
 import { categoryLabels } from "@/lib/journey/types";
 
 export const Route = createFileRoute("/roadmap")({
+  beforeLoad: ({ context, location }) => {
+    requireAuthenticatedUser(context, location);
+  },
   validateSearch: (search: Record<string, unknown>) => ({
     id: typeof search["id"] === "string" ? (search["id"] as string) : "",
   }),

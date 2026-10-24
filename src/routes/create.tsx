@@ -1,16 +1,29 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/lifecraft/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { requireAuthenticatedUser } from "@/lib/auth/redirect";
+import {
+  generateJourney,
+  getNextGenerationProvider,
+  type GenerationProvider,
+  type GeneratedJourneyResponse,
+} from "@/lib/journey/generateJourney";
 import { journeyStore } from "@/lib/journey/journeyStore";
-import { generateJourney } from "@/lib/journey/generateJourney";
+import {
+  demoGeneratedJourney,
+  demoJourneyInput,
+} from "@/data/demoJourney";
 
 export const Route = createFileRoute("/create")({
+  beforeLoad: ({ context, location }) => {
+    requireAuthenticatedUser(context, location);
+  },
   head: () => ({
     meta: [
       { title: "Create a Goal — LIFECRAFT" },
@@ -38,43 +51,81 @@ function CreateGoal() {
   const [targetDate, setTargetDate] = useState("");
   const [error, setError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [provider, setProvider] = useState<GenerationProvider>("gemini");
+  const isGeneratingRef = useRef(false);
+  const hasCreatedJourneyRef = useRef(false);
   const generateJourneyFn = useServerFn(generateJourney);
 
   const createJourney = async () => {
-    if (isGenerating) return;
+    if (isGeneratingRef.current || hasCreatedJourneyRef.current) return;
     if (!goal.trim()) {
       setError("Describe your goal before creating a journey.");
       return;
     }
 
     setError("");
+    isGeneratingRef.current = true;
     setIsGenerating(true);
+    let generated: GeneratedJourneyResponse | undefined;
     try {
-      const generated = await generateJourneyFn({
-        data: { goal, why, dailyTime: daily, targetDate },
+      generated = await generateJourneyFn({
+        data: { goal, why, dailyTime: daily, targetDate, provider },
       });
+    } catch (caught) {
+      const message = "AI generation is temporarily unavailable. Try again.";
+      setProvider(getNextGenerationProvider(provider));
+      setError(message);
+      toast.error("Could not create your journey", {
+        description: message,
+      });
+    }
+
+    isGeneratingRef.current = false;
+    setIsGenerating(false);
+
+    if (generated) {
+      hasCreatedJourneyRef.current = true;
+      setProvider("gemini");
       const journey = journeyStore.createGenerated(
         { goal, why, dailyTime: daily, targetDate },
         generated,
       );
       toast.success("Your journey is ready.");
       await navigate({ to: "/roadmap", search: { id: journey.id } });
-    } catch (caught) {
-      const message = caught instanceof Error ? caught.message : "AI journey generation failed.";
-      setError(
-        message.includes("not configured")
-          ? "AI journey generation is not configured on the server."
-          : "AI journey generation failed. Please try again.",
-      );
-      toast.error("Could not create your journey", {
-        description: message.includes("not configured")
-          ? "AI journey generation is not configured."
-          : "Please try again in a moment.",
-      });
-    } finally {
-      setIsGenerating(false);
     }
   };
+
+  const createDemoJourney = async () => {
+  if (isGeneratingRef.current || hasCreatedJourneyRef.current) return;
+
+  hasCreatedJourneyRef.current = true;
+  setError("");
+
+  try {
+    const journey = journeyStore.createGenerated(
+      demoJourneyInput,
+      demoGeneratedJourney as unknown as GeneratedJourneyResponse,
+    );
+
+    toast.success("Demo journey loaded", {
+      description:
+        "A prebuilt Python journey was loaded for project demonstration.",
+    });
+
+    await navigate({
+      to: "/roadmap",
+      search: { id: journey.id },
+    });
+  } catch (caught) {
+    hasCreatedJourneyRef.current = false;
+
+    console.error("Could not create demo journey", caught);
+
+    toast.error("Could not load demo journey.");
+  }
+};
+
+  const isAttemptRunning = isGenerating || isGeneratingRef.current;
 
   return (
     <AppShell>
@@ -165,17 +216,55 @@ function CreateGoal() {
               type="submit"
               size="lg"
               className="w-full sm:w-auto"
-              disabled={isGenerating}
+              disabled={isAttemptRunning}
             >
-              {isGenerating ? "Building your journey..." : "Create My Journey"}
+              {isAttemptRunning ? "Building your journey..." : "Create My Journey"}
             </Button>
 
-            {isGenerating ? (
+            {isAttemptRunning ? (
               <p className="text-sm text-muted-foreground">
-                LIFECRAFT is building your personalized roadmap. This may take a few seconds.
+                LIFECRAFT is creating your personalized roadmap. Complex goals may take a few
+                seconds.
               </p>
             ) : null}
-</div>
+
+            {!isAttemptRunning && error && goal.trim() ? (
+              <div className="space-y-3">
+                <p role="alert" className="text-sm text-destructive">
+                  {error}
+                </p>
+
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isAttemptRunning}
+                    onClick={() => {
+                      void createJourney();
+                  }}
+                >
+                  Retry generation
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={isAttemptRunning}
+                  onClick={() => {
+                    void createDemoJourney();
+                  }}
+                >
+                  Load Demo Journey
+                </Button>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                Demo Journey loads a prebuilt sample for project demonstration when
+                external AI services are unavailable.
+              </p>
+            </div>
+          ) : null}
+          </div>
         </form>
       </div>
     </AppShell>

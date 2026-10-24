@@ -1,12 +1,16 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Compass, LayoutDashboard, Settings, Zap } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
+import { Compass, LayoutDashboard, LogOut, Settings, Zap } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { user } from "@/data/mock";
 import { getNextMove } from "@/lib/journey/journeyStore";
 import { reminderStore } from "@/lib/reminders/reminderStore";
 import { useSettings } from "@/lib/settings/settingsStore";
 import { useJourney } from "@/lib/journey/useJourneys";
+import { logout } from "@/lib/supabase/auth-actions";
+import { useAuthState } from "@/lib/supabase/use-auth-state";
+import { useServerFn } from "@tanstack/react-start";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -19,6 +23,42 @@ export function AppShell({ children }: { children: ReactNode }) {
   const settings = useSettings();
   const journey = useJourney();
   const navigate = useNavigate();
+  const logoutAction = useServerFn(logout);
+  const { user: authUser } = useAuthState();
+  const [signingOut, setSigningOut] = useState(false);
+  const metadataName = authUser?.user_metadata["full_name"];
+  const displayName = authUser
+    ? (typeof metadataName === "string" && metadataName.trim()) || authUser.email || user.fullName
+    : settings.loaded
+      ? settings.fullName
+      : "";
+  const displayEmail = authUser?.email ?? user.email;
+  const initials =
+    displayName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || user.initials;
+
+  async function signOut() {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      const result = await logoutAction();
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+
+      window.location.assign("/login");
+    } catch {
+      toast.error("Sign out is temporarily unavailable. Please try again.");
+    } finally {
+      setSigningOut(false);
+    }
+  }
 
   useEffect(() => {
     if (!settings.loaded || !settings.dailyReminderEnabled || !journey) {
@@ -27,10 +67,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
     const move = getNextMove(journey);
 
-    if (
-      !move ||
-      !reminderStore.shouldShowToday(settings.dailyReminderTime)
-    ) {
+    if (!move || !reminderStore.shouldShowToday(settings.dailyReminderTime)) {
       return;
     }
 
@@ -79,14 +116,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             aria-hidden="true"
             className="size-7 shrink-0 object-contain"
           />
-
           LIFECRAFT
         </Link>
 
-        <nav
-          aria-label="Main"
-          className="mt-10 flex flex-1 flex-col gap-1"
-        >
+        <nav aria-label="Main" className="mt-10 flex flex-1 flex-col gap-1">
           {nav.map(({ to, label, icon: Icon }) => (
             <Link
               key={to}
@@ -95,40 +128,43 @@ export function AppShell({ children }: { children: ReactNode }) {
                 className: "bg-accent-soft text-foreground",
               }}
               inactiveProps={{
-                className:
-                  "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
+                className: "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
               }}
               className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors duration-200"
             >
-              <Icon
-                className="size-4 shrink-0"
-                aria-hidden
-              />
+              <Icon className="size-4 shrink-0" aria-hidden />
 
-              <span className="truncate">
-                {label}
-              </span>
+              <span className="truncate">{label}</span>
             </Link>
           ))}
         </nav>
 
-        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-lg border border-border px-3 py-3">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-border px-3 py-3">
           <span
             aria-hidden
             className="grid size-8 shrink-0 place-items-center rounded-full bg-accent-soft font-display text-xs text-primary"
           >
-            {user.initials}
+            {initials}
           </span>
 
           <span className="min-w-0">
-            <span className="block truncate text-sm text-foreground">
-              {settings.loaded ? settings.fullName : ""}
-            </span>
+            <span className="block truncate text-sm text-foreground">{displayName}</span>
 
-            <span className="block truncate text-xs text-muted-foreground">
-              {user.email}
-            </span>
+            <span className="block truncate text-xs text-muted-foreground">{displayEmail}</span>
           </span>
+          {authUser ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Log out"
+              title="Log out"
+              disabled={signingOut}
+              onClick={() => void signOut()}
+            >
+              <LogOut aria-hidden="true" />
+            </Button>
+          ) : null}
         </div>
       </aside>
 
@@ -136,19 +172,31 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="min-w-0 lg:pl-[248px]">
         {/* Mobile header */}
         <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-border bg-background/85 px-5 py-4 backdrop-blur lg:hidden">
-          <Link
-            to="/"
-            className="font-display text-sm font-bold tracking-[0.28em]"
-          >
+          <Link to="/" className="font-display text-sm font-bold tracking-[0.28em]">
             LIFECRAFT
           </Link>
 
-          <span
-            aria-hidden
-            className="grid size-8 place-items-center rounded-full bg-accent-soft font-display text-xs text-primary"
-          >
-            {user.initials}
-          </span>
+          <div className="flex items-center gap-2">
+            <span
+              aria-hidden
+              className="grid size-8 place-items-center rounded-full bg-accent-soft font-display text-xs text-primary"
+            >
+              {initials}
+            </span>
+            {authUser ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label="Log out"
+                title="Log out"
+                disabled={signingOut}
+                onClick={() => void signOut()}
+              >
+                <LogOut aria-hidden="true" />
+              </Button>
+            ) : null}
+          </div>
         </header>
 
         <main
@@ -176,14 +224,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             }}
             className="flex flex-col items-center gap-1 py-3 text-[11px] transition-colors duration-200"
           >
-            <Icon
-              className="size-5"
-              aria-hidden
-            />
+            <Icon className="size-5" aria-hidden />
 
-            <span className="truncate px-1">
-              {label}
-            </span>
+            <span className="truncate px-1">{label}</span>
           </Link>
         ))}
       </nav>

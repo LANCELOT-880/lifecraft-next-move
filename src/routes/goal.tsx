@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/lifecraft/AppShell";
+import { requireAuthenticatedUser } from "@/lib/auth/redirect";
 import { MilestoneSection } from "@/components/lifecraft/MilestoneSection";
 import { NextMoveCard } from "@/components/lifecraft/NextMoveCard";
 import { ProgressMeter } from "@/components/lifecraft/ProgressMeter";
@@ -12,6 +13,9 @@ import { allTasks, completedCount, getNextMove, journeyStore } from "@/lib/journ
 import { useJourney } from "@/lib/journey/useJourneys";
 
 export const Route = createFileRoute("/goal")({
+  beforeLoad: ({ context, location }) => {
+    requireAuthenticatedUser(context, location);
+  },
   validateSearch: (search: Record<string, unknown>) => ({
     id: typeof search["id"] === "string" ? (search["id"] as string) : "",
   }),
@@ -99,7 +103,7 @@ function GoalDetails() {
 
   useEffect(() => {
     if (journey) journeyStore.setActiveId(journey.id);
-  }, [journey?.id]);
+  }, [journey]);
 
   if (!journey) {
     const journeyMissing = Boolean(id);

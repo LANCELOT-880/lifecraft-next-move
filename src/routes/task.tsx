@@ -1,19 +1,29 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useRef, useState } from "react";
 import { Check, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/lifecraft/AppShell";
+import { requireAuthenticatedUser } from "@/lib/auth/redirect";
 import { ResourceList } from "@/components/lifecraft/ResourceList";
 import { RewardsSummary } from "@/components/lifecraft/RewardsSummary";
 import { VocabularyList } from "@/components/lifecraft/VocabularyList";
 import { Button } from "@/components/ui/button";
 import { getLesson, type Lesson } from "@/lib/journey/lessons";
+import {
+  generateTaskLesson,
+  type GeneratedTaskLesson,
+} from "@/lib/journey/generateTaskLesson";
 import { getResources } from "@/lib/journey/resources";
 import { awardPracticeCompletion } from "@/lib/journey/rewards";
 import { findTask, journeyStore } from "@/lib/journey/journeyStore";
 import { useJourney } from "@/lib/journey/useJourneys";
+import type { GeneratedLesson } from "@/lib/journey/types";
 
 export const Route = createFileRoute("/task")({
+  beforeLoad: ({ context, location }) => {
+    requireAuthenticatedUser(context, location);
+  },
   validateSearch: (search: Record<string, unknown>) => ({
     journey: typeof search["journey"] === "string" ? (search["journey"] as string) : "",
     task: typeof search["task"] === "string" ? (search["task"] as string) : "",
@@ -36,16 +46,99 @@ export const Route = createFileRoute("/task")({
   component: TaskLesson,
 });
 
+function toStoredLesson(
+  generated: GeneratedTaskLesson,
+): GeneratedLesson {
+  return {
+    overview: generated.overview,
+    learn: generated.learn,
+    exercise: generated.exercise,
+    steps: generated.steps,
+    successCriteria: generated.successCriteria,
+    resourceQueries: generated.resourceQueries,
+    ...(generated.reflection
+      ? { reflection: generated.reflection }
+      : {}),
+  };
+}
+
+
 // prettier-ignore
 function TaskLesson() {
   const { journey: journeyId, task: taskId } = Route.useSearch();
   const navigate = useNavigate();
   const journey = useJourney(journeyId);
   const found = journey ? findTask(journey, taskId) : null;
+  const generateTaskLessonFn = useServerFn(generateTaskLesson);
+
+  const [isGeneratingLesson, setIsGeneratingLesson] = useState(false);
+  const [lessonGenerationError, setLessonGenerationError] = useState("");
+
+  const [lessonProvider, setLessonProvider] =
+  useState<"gemini" | "openrouter">("gemini");
+
+  const lessonAttemptRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (journey) journeyStore.setActiveId(journey.id);
-  }, [journey?.id]);
+  }, [journey]);
+  useEffect(() => {
+  if (!journey || !found) return;
+
+  const existingLesson = getLesson(found.task, journey);
+
+  // Demo/static lesson already exists.
+  if (existingLesson) return;
+
+  const attemptKey = `${journey.id}:${found.task.id}`;
+
+  // Prevent duplicate generation requests.
+  if (lessonAttemptRef.current === attemptKey) return;
+
+  lessonAttemptRef.current = attemptKey;
+
+  const generate = async () => {
+    setIsGeneratingLesson(true);
+    setLessonGenerationError("");
+
+    try {
+      const generated = await generateTaskLessonFn({
+        data: {
+          journeyTitle: journey.title,
+          phaseTitle: found.phase.title,
+          taskTitle: found.task.title,
+          difficulty: found.task.difficulty,
+          estimatedMinutes: found.task.estimatedMinutes,
+          provider: "gemini",
+        },
+      });
+
+      setLessonProvider("openrouter");
+
+      const saved = journeyStore.updateTaskLesson(
+        journey.id,
+        found.task.id,
+        toStoredLesson(generated),
+      );
+
+      if (!saved) {
+        throw new Error("Could not save generated lesson.");
+      }
+
+      toast.success("Lesson generated.");
+    } catch (error) {
+      console.error("Lesson generation failed", error);
+
+      setLessonGenerationError(
+        "AI could not generate this lesson right now.",
+      );
+    } finally {
+      setIsGeneratingLesson(false);
+    }
+  };
+
+  void generate();
+}, [journey, found, generateTaskLessonFn]);
 
   if (!journey || !found) {
     const journeyMissing = Boolean(journeyId) && !journey;
@@ -71,6 +164,45 @@ function TaskLesson() {
   const { task, phase } = found;
   const lesson = getLesson(task, journey);
   const resources = getResources(task, journey);
+  const retryLessonGeneration = async () => {
+  if (isGeneratingLesson) return;
+
+  setIsGeneratingLesson(true);
+  setLessonGenerationError("");
+
+  try {
+      const generated = await generateTaskLessonFn({
+        data: {
+          journeyTitle: journey.title,
+          phaseTitle: phase.title,
+          taskTitle: task.title,
+          difficulty: task.difficulty,
+          estimatedMinutes: task.estimatedMinutes,
+          provider: lessonProvider,
+        },
+      });
+
+    const saved = journeyStore.updateTaskLesson(
+      journey.id,
+      task.id,
+      toStoredLesson(generated),
+    );
+
+    if (!saved) {
+      throw new Error("Could not save generated lesson.");
+    }
+
+    toast.success("Lesson generated.");
+  } catch (error) {
+    console.error("Lesson generation retry failed", error);
+
+    setLessonGenerationError(
+      "AI lesson generation is temporarily unavailable.",
+    );
+  } finally {
+    setIsGeneratingLesson(false);
+  }
+};
 
   const complete = () => {
     const result = journeyStore.completeTask(journey.id, task.id);
@@ -122,16 +254,71 @@ function TaskLesson() {
 
       {!lesson ? (
         <>
-          <p className="mt-6 rounded-lg border border-border bg-surface-2/60 px-4 py-3 text-sm text-muted-foreground">
-            Lesson content unavailable for this step yet. You can still work on the step and mark it
-            complete.
-          </p>
+          <div className="surface-panel mt-6 p-5 sm:p-6">
+            <h2 className="text-eyebrow text-muted-foreground">
+              AI Lesson
+            </h2>
+
+            {isGeneratingLesson ? (
+              <>
+                <p className="mt-4 text-sm text-muted-foreground">
+                  LIFECRAFT is generating a personalized lesson for this task.
+                </p>
+
+                <p className="mt-2 text-xs text-muted-foreground">
+                  This may take a few seconds.
+                </p>
+              </>
+            ) : lessonGenerationError ? (
+              <>
+                <p
+                  role="alert"
+                  className="mt-4 text-sm text-destructive"
+                >
+                  {lessonGenerationError}
+                </p>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => {
+                    void retryLessonGeneration();
+
+                    setLessonProvider((current) =>
+  current === "gemini" ? "openrouter" : "gemini",
+);
+                  }}
+                >
+                  {lessonProvider === "openrouter"
+  ? "Retry with OpenRouter"
+  : "Retry with Gemini"}
+                </Button>
+              </>
+            ) : (
+              <p className="mt-4 text-sm text-muted-foreground">
+                Preparing your lesson...
+              </p>
+            )}
+          </div>
+
           <ResourceList resources={resources} />
+
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Button size="lg" className="w-full sm:w-auto" onClick={complete}>
+            <Button
+              size="lg"
+              className="w-full sm:w-auto"
+              onClick={complete}
+            >
               {task.completed ? "Task completed" : "Complete Task"}
             </Button>
-            <Button asChild variant="ghost" size="lg" className="w-full sm:w-auto">
+
+            <Button
+              asChild
+              variant="ghost"
+              size="lg"
+              className="w-full sm:w-auto"
+            >
               <Link to="/goal" search={{ id: journey.id }}>
                 Back to journey
               </Link>

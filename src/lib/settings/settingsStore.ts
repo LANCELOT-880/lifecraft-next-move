@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { user } from "@/data/mock";
+import { getUserStorageKey, subscribeStorageUser } from "@/lib/storage/userStorage";
 
 export interface AppSettings {
   fullName: string;
@@ -34,7 +35,7 @@ function read(): AppSettings {
   if (!isBrowser()) return DEFAULT_SETTINGS;
 
   try {
-    const raw = window.localStorage.getItem(SETTINGS_KEY);
+    const raw = window.localStorage.getItem(getUserStorageKey(SETTINGS_KEY));
     const parsed: unknown = raw ? JSON.parse(raw) : null;
     return {
       fullName:
@@ -69,6 +70,12 @@ function emit() {
   listeners.forEach((listener) => listener());
 }
 
+subscribeStorageUser(() => {
+  cache = null;
+  snapshotCache = null;
+  emit();
+});
+
 export const settingsStore = {
   subscribe(listener: () => void) {
     listeners.add(listener);
@@ -93,7 +100,7 @@ export const settingsStore = {
     };
 
     try {
-      window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(normalized));
+      window.localStorage.setItem(getUserStorageKey(SETTINGS_KEY), JSON.stringify(normalized));
       cache = normalized;
       snapshotCache = { ...normalized, loaded: true };
       emit();
@@ -101,6 +108,15 @@ export const settingsStore = {
     } catch {
       return false;
     }
+  },
+  updatePreferences(
+    next: Pick<AppSettings, "dailyReminderEnabled" | "dailyReminderTime">,
+  ): boolean {
+    const current = settingsStore.getSnapshot();
+    return settingsStore.update({
+      fullName: current.fullName,
+      ...next,
+    });
   },
 };
 

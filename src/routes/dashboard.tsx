@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSyncExternalStore } from "react";
 import { Plus } from "lucide-react";
 import { AppShell } from "@/components/lifecraft/AppShell";
+import { requireAuthenticatedUser } from "@/lib/auth/redirect";
 import { JourneyCard } from "@/components/lifecraft/JourneyCard";
 import { NextMoveCard } from "@/components/lifecraft/NextMoveCard";
 import { RewardsSummary } from "@/components/lifecraft/RewardsSummary";
@@ -9,8 +10,12 @@ import { Button } from "@/components/ui/button";
 import { getNextMove, journeyStore } from "@/lib/journey/journeyStore";
 import { useSettings } from "@/lib/settings/settingsStore";
 import { useJourney, useJourneys } from "@/lib/journey/useJourneys";
+import { useAuthState } from "@/lib/supabase/use-auth-state";
 
 export const Route = createFileRoute("/dashboard")({
+  beforeLoad: ({ context, location }) => {
+    requireAuthenticatedUser(context, location);
+  },
   head: () => ({
     meta: [
       { title: "Dashboard — LIFECRAFT" },
@@ -29,6 +34,7 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function Dashboard() {
+  const { user: authUser } = useAuthState();
   const settings = useSettings();
   const journeys = useJourneys();
   const activeJourney = useJourney();
@@ -38,6 +44,12 @@ function Dashboard() {
     () => null,
   );
   const nextMove = activeJourney ? getNextMove(activeJourney) : null;
+  const metadataName = authUser?.user_metadata["full_name"];
+  const displayName = authUser
+    ? (typeof metadataName === "string" && metadataName.trim()) || authUser.email || ""
+    : settings.loaded
+      ? settings.fullName
+      : "";
 
   return (
     <AppShell>
@@ -45,7 +57,7 @@ function Dashboard() {
         <div className="min-w-0">
           <p className="text-eyebrow text-primary">Your dashboard</p>
           <h1 className="mt-3 text-2xl font-semibold sm:text-3xl">
-            Good evening, {settings.loaded ? `${settings.fullName}.` : ""}
+            Good evening, {displayName ? `${displayName}.` : ""}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             A clear next step for everything you’re building.

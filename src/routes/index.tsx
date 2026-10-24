@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Zap } from "lucide-react";
 import { steps } from "@/data/mock";
 import { Button } from "@/components/ui/button";
+import { useAuthState } from "@/lib/supabase/use-auth-state";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,17 +25,35 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const { user: authUser, loading: authLoading } = useAuthState();
+
   return (
     <div className="min-h-screen bg-background">
       <header className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-5 sm:px-8 sm:py-6">
         <span className="font-display text-sm font-bold tracking-[0.28em]">LIFECRAFT</span>
         <nav aria-label="Primary" className="flex items-center gap-2">
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/dashboard">Open app</Link>
-          </Button>
-          <Button asChild size="sm">
-            <Link to="/create">Start</Link>
-          </Button>
+          {authLoading ? (
+            <Button size="sm" variant="ghost" disabled aria-live="polite">
+              Checking session…
+            </Button>
+          ) : authUser ? (
+            <Button asChild size="sm">
+              <Link to="/dashboard">Open Dashboard</Link>
+            </Button>
+          ) : (
+            <>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/login" search={{ redirect: undefined }}>
+                  Login
+                </Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link to="/signup" search={{ redirect: undefined }}>
+                  Sign up
+                </Link>
+              </Button>
+            </>
+          )}
         </nav>
       </header>
 
@@ -56,14 +75,25 @@ function Landing() {
                 step.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-                <Button asChild size="lg" className="w-full sm:w-auto">
-                  <Link to="/create">
-                    Start Your Journey <ArrowRight className="size-4" aria-hidden />
-                  </Link>
-                </Button>
-                <Button asChild variant="ghost" size="lg" className="w-full sm:w-auto">
-                  <Link to="/dashboard">See a live journey</Link>
-                </Button>
+                {authLoading ? (
+                  <Button size="lg" className="w-full sm:w-auto" disabled aria-live="polite">
+                    Checking session…
+                  </Button>
+                ) : (
+                  <>
+                    <Button asChild size="lg" className="w-full sm:w-auto">
+                      <Link to={authUser ? "/dashboard" : "/signup"}>
+                        {authUser ? "Open Dashboard" : "Start Your Journey"}
+                        <ArrowRight className="size-4" aria-hidden />
+                      </Link>
+                    </Button>
+                    <Button asChild variant="ghost" size="lg" className="w-full sm:w-auto">
+                      <Link to={authUser ? "/next" : "/login"}>
+                        {authUser ? "See your next move" : "Login"}
+                      </Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
 
@@ -142,7 +172,9 @@ function Landing() {
           <span className="font-display text-xs tracking-[0.28em] text-muted-foreground">
             LIFECRAFT
           </span>
-          <span className="text-xs text-muted-foreground">Turn intentions into your next move.</span>
+          <span className="text-xs text-muted-foreground">
+            Turn intentions into your next move.
+          </span>
         </div>
       </footer>
     </div>

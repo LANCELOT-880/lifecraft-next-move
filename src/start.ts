@@ -1,4 +1,7 @@
 import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/react-start";
+import { getCookies } from "@tanstack/react-start/server";
+import { getAuthenticatedUser } from "./lib/supabase/auth";
+import { createSupabaseServerClient, hasSupabaseServerConfig } from "./lib/supabase/server";
 
 import { renderErrorPage } from "./lib/error-page";
 
@@ -24,6 +27,28 @@ const csrfMiddleware = createCsrfMiddleware({
   filter: (ctx) => ctx.handlerType === "serverFn",
 });
 
+const supabaseSessionMiddleware = createMiddleware({ type: "request" }).server(async ({ next }) => {
+  let supabaseUser = null;
+  const nextRequestCookiePresent = Object.keys(getCookies()).some((name) => name.startsWith("sb-"));
+
+  if (hasSupabaseServerConfig()) {
+    try {
+      supabaseUser = await getAuthenticatedUser(createSupabaseServerClient());
+    } catch {
+      supabaseUser = null;
+    }
+  }
+
+  if (import.meta.env.DEV) {
+    console.info("auth.middleware.diagnostics", {
+      nextRequestCookiePresent,
+      middlewareUserPresent: Boolean(supabaseUser),
+    });
+  }
+
+  return next({ context: { supabaseUser } });
+});
+
 export const startInstance = createStart(() => ({
-  requestMiddleware: [errorMiddleware, csrfMiddleware],
+  requestMiddleware: [errorMiddleware, csrfMiddleware, supabaseSessionMiddleware],
 }));

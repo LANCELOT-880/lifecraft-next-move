@@ -1,3 +1,5 @@
+import { getUserStorageKey } from "@/lib/storage/userStorage";
+
 const REMINDER_KEY = "lifecraft.reminder.v1";
 
 interface ReminderMetadata {
@@ -32,7 +34,7 @@ function read(): ReminderMetadata | null {
   if (!isBrowser()) return null;
 
   try {
-    const raw = window.localStorage.getItem(REMINDER_KEY);
+    const raw = window.localStorage.getItem(getUserStorageKey(REMINDER_KEY));
     if (!raw) return null;
     const parsed: unknown = JSON.parse(raw);
     if (
@@ -57,7 +59,7 @@ export const reminderStore = {
 
     try {
       window.localStorage.setItem(
-        REMINDER_KEY,
+        getUserStorageKey(REMINDER_KEY),
         JSON.stringify({ lastShownDate: getLocalDate() } satisfies ReminderMetadata),
       );
       return true;

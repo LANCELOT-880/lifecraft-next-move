@@ -1,0 +1,22 @@
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/lifecraft/AppShell.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/lib/journey/generateJourney.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/lib/journey/journeyStore.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/lib/journey/rewards.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/lib/reminders/reminderStore.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/lib/settings/settingsStore.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/routeTree.gen.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/router.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/routes/__root.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/routes/create.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/routes/dashboard.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/routes/goal.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/routes/index.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/routes/journeys.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/routes/next.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/routes/roadmap.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/routes/settings.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/routes/task.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/start.ts', LF will be replaced by CRLF the next time Git touches it
+src/lib/journey/generateJourney.ts:308: trailing whitespace.
+[32m+[m[41m    [m

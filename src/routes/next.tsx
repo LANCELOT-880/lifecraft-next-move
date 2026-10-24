@@ -2,12 +2,16 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Zap } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/lifecraft/AppShell";
+import { requireAuthenticatedUser } from "@/lib/auth/redirect";
 import { Button } from "@/components/ui/button";
 import { findTask, getNextMove, journeyStore } from "@/lib/journey/journeyStore";
 import { REWARDS } from "@/lib/journey/rewards";
 import { useJourney } from "@/lib/journey/useJourneys";
 
 export const Route = createFileRoute("/next")({
+  beforeLoad: ({ context, location }) => {
+    requireAuthenticatedUser(context, location);
+  },
   head: () => ({
     meta: [
       { title: "Your Next Move — LIFECRAFT" },

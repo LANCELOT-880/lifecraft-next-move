@@ -1,5 +1,6 @@
 import { demoJourneys } from "./demo";
 import type { Journey, Task } from "./types";
+import { getUserStorageKey, subscribeStorageUser } from "@/lib/storage/userStorage";
 
 /** Mock reward values — tuned locally, no backend involved. */
 export const REWARDS = {
@@ -93,7 +94,7 @@ function seededHistoricalKeys(): string[] {
 function read(): RewardState {
   if (!isBrowser()) return EMPTY;
   try {
-    const raw = window.localStorage.getItem(KEY);
+    const raw = window.localStorage.getItem(getUserStorageKey(KEY));
     const parsed = raw ? (JSON.parse(raw) as Partial<RewardState>) : {};
     const historical = Array.isArray(parsed.historical)
       ? parsed.historical.filter((key) => typeof key === "string")
@@ -124,13 +125,18 @@ function commit(next: RewardState) {
   cache = next;
   if (isBrowser()) {
     try {
-      window.localStorage.setItem(KEY, JSON.stringify(next));
+      window.localStorage.setItem(getUserStorageKey(KEY), JSON.stringify(next));
     } catch {
       /* storage unavailable — keep in-memory state */
     }
   }
   listeners.forEach((listener) => listener());
 }
+
+subscribeStorageUser(() => {
+  cache = null;
+  listeners.forEach((listener) => listener());
+});
 
 export function getRewardProgress(state: RewardState): RewardProgress {
   const level = Math.floor(state.xp / XP_PER_LEVEL) + 1;

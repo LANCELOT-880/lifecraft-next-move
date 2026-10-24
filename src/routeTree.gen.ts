@@ -14,9 +14,11 @@ import { Route as CreateRouteImport } from './routes/create'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as GoalRouteImport } from './routes/goal'
 import { Route as JourneysRouteImport } from './routes/journeys'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as NextRouteImport } from './routes/next'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as TaskRouteImport } from './routes/task'
 
 const IndexRoute = IndexRouteImport.update({
@@ -44,6 +46,11 @@ const JourneysRoute = JourneysRouteImport.update({
   path: '/journeys',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NextRoute = NextRouteImport.update({
   id: '/next',
   path: '/next',
@@ -59,6 +66,11 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TaskRoute = TaskRouteImport.update({
   id: '/task',
   path: '/task',
@@ -71,9 +83,11 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/goal': typeof GoalRoute
   '/journeys': typeof JourneysRoute
+  '/login': typeof LoginRoute
   '/next': typeof NextRoute
   '/roadmap': typeof RoadmapRoute
   '/settings': typeof SettingsRoute
+  '/signup': typeof SignupRoute
   '/task': typeof TaskRoute
 }
 export interface FileRoutesByTo {
@@ -82,9 +96,11 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/goal': typeof GoalRoute
   '/journeys': typeof JourneysRoute
+  '/login': typeof LoginRoute
   '/next': typeof NextRoute
   '/roadmap': typeof RoadmapRoute
   '/settings': typeof SettingsRoute
+  '/signup': typeof SignupRoute
   '/task': typeof TaskRoute
 }
 export interface FileRoutesById {
@@ -94,9 +110,11 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/goal': typeof GoalRoute
   '/journeys': typeof JourneysRoute
+  '/login': typeof LoginRoute
   '/next': typeof NextRoute
   '/roadmap': typeof RoadmapRoute
   '/settings': typeof SettingsRoute
+  '/signup': typeof SignupRoute
   '/task': typeof TaskRoute
 }
 export interface FileRouteTypes {
@@ -107,9 +125,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/goal'
     | '/journeys'
+    | '/login'
     | '/next'
     | '/roadmap'
     | '/settings'
+    | '/signup'
     | '/task'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -118,9 +138,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/goal'
     | '/journeys'
+    | '/login'
     | '/next'
     | '/roadmap'
     | '/settings'
+    | '/signup'
     | '/task'
   id:
     | '__root__'
@@ -129,9 +151,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/goal'
     | '/journeys'
+    | '/login'
     | '/next'
     | '/roadmap'
     | '/settings'
+    | '/signup'
     | '/task'
   fileRoutesById: FileRoutesById
 }
@@ -141,9 +165,11 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   GoalRoute: typeof GoalRoute
   JourneysRoute: typeof JourneysRoute
+  LoginRoute: typeof LoginRoute
   NextRoute: typeof NextRoute
   RoadmapRoute: typeof RoadmapRoute
   SettingsRoute: typeof SettingsRoute
+  SignupRoute: typeof SignupRoute
   TaskRoute: typeof TaskRoute
 }
 
@@ -184,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JourneysRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/next': {
       id: '/next'
       path: '/next'
@@ -205,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/task': {
       id: '/task'
       path: '/task'
@@ -221,9 +261,11 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   GoalRoute: GoalRoute,
   JourneysRoute: JourneysRoute,
+  LoginRoute: LoginRoute,
   NextRoute: NextRoute,
   RoadmapRoute: RoadmapRoute,
   SettingsRoute: SettingsRoute,
+  SignupRoute: SignupRoute,
   TaskRoute: TaskRoute,
 }
 export const routeTree = rootRouteImport

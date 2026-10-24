@@ -11,6 +11,8 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "../components/ui/sonner";
+import { AuthStateProvider } from "../lib/supabase/auth-state";
+import { getCurrentUser, type AuthenticatedUserSummary } from "../lib/supabase/auth";
 
 function NotFoundComponent() {
   return (
@@ -69,7 +71,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient;
+  supabaseUser: AuthenticatedUserSummary | null;
+}>()({
+  beforeLoad: async () => ({
+    supabaseUser: await getCurrentUser(),
+  }),
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -95,7 +103,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@400;500;600&display=swap",
       },
-      { rel: "icon", href: "/favicon.png", type: "image/png" }
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
     ],
   }),
   shellComponent: RootShell,
@@ -128,12 +136,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {hydrationReady ? (
-        /* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */
-        <Outlet />
-      ) : (
-        <div aria-busy="true" className="min-h-screen bg-background" />
-      )}
+      <AuthStateProvider>
+        {hydrationReady ? (
+          /* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */
+          <Outlet />
+        ) : (
+          <div aria-busy="true" className="min-h-screen bg-background" />
+        )}
+      </AuthStateProvider>
       <Toaster />
     </QueryClientProvider>
   );
